@@ -1,0 +1,34 @@
+name,rank,scientificName,scientificNameID,kingdom,original_name,type
+Actinocyclus,Genus,Actinocyclus,urn:lsid:marinespecies.org:taxname:148944,Chromista,Actinocyclus,Taxonomy
+Asterionellopsis glacialis,Species,Asterionella glacialis,urn:lsid:marinespecies.org:taxname:149139,Chromista,Asterionellopsis glacialis,Taxonomy
+Bacillaria,Genus,Bacillaria,urn:lsid:marinespecies.org:taxname:149148,Chromista,Bacillaria,Taxonomy
+Cerataulina bergonii,Species,Cerataulina bergonii,urn:lsid:marinespecies.org:taxname:961694,Chromista,Cerataulina bergonii,Taxonomy
+Chaetoceros jonquieri,Genus,Chaetoceros,urn:lsid:marinespecies.org:taxname:148985,Chromista,Chaetoceros jonquieri,Taxonomy
+Chaetoceros,Genus,Chaetoceros,urn:lsid:marinespecies.org:taxname:148985,Chromista,Chaetoceros_sp12,Taxonomy
+Ciliophora,Phylum,Ciliophora,urn:lsid:marinespecies.org:taxname:11,Chromista,Ciliophora,Taxonomy
+Dactyliosolen blavyanus,Species,Guinardia blavyana var. blavyana,urn:lsid:marinespecies.org:taxname:179786,Chromista,Dactyliosolen blavyanus,Taxonomy
+Grammatophora,Genus,Grammatophora,urn:lsid:marinespecies.org:taxname:149335,Chromista,Grammatophora,Taxonomy
+Guinardia delicatula,Species,Rhizosolenia delicatula,urn:lsid:marinespecies.org:taxname:149112,Chromista,Guinardia delicatula,Taxonomy
+Nitzschia,Genus,Nitzschia,urn:lsid:marinespecies.org:taxname:149045,Chromista,Nitzschia,Taxonomy
+Thalassionema nitzschioides,Species,Synedra nitzschioides f. nitzschioides,urn:lsid:marinespecies.org:taxname:149093,Chromista,Thalassionema nitzschioides,Taxonomy
+Tripos,Genus,Tripos,urn:lsid:marinespecies.org:taxname:494057,Chromista,Tripos sp.,Taxonomy
+Chaetoceros elegans,Species,Chaetoceros elegans,urn:lsid:marinespecies.org:taxname:963740,Chromista,Chaetoceros elegans,Taxonomy
+Chaetoceros muellerii,Species,Chaetoceros muelleri,urn:lsid:marinespecies.org:taxname:163098,Chromista,Chaetoceros muellerii,Taxonomy
+Fragilaria vaucheriae,Species,Exilaria vaucheriae,urn:lsid:marinespecies.org:taxname:172405,Chromista,Fragilaria vaucheriae,Taxonomy
+Licmophora paradoxa,Species,Licmophora paradoxa,urn:lsid:marinespecies.org:taxname:149344,Chromista,Licmophora paradoxa,Taxonomy
+Staurosirella,Genus,Staurosirella,urn:lsid:marinespecies.org:taxname:175949,Chromista,Staurosirella sp.,Taxonomy
+Leptocylindrus aporus,Species,Leptocylindrus danicus,urn:lsid:marinespecies.org:taxname:149106,Chromista,Leptocylindrus aporus,Taxonomy
+zooplankton,Kingdom,Animalia,urn:lsid:marinespecies.org:taxname:2,Animalia,zooplankton,Taxonomy
+Euglenophyceae long,Class,Euglenophyceae,urn:lsid:marinespecies.org:taxname:19539,Protozoa,Euglenophyceae long,Morphology
+group chaetoceros curly,Genus,Chaetoceros,urn:lsid:marinespecies.org:taxname:148985,Chromista,group chaetoceros curly,Morphology
+group pennate,Phylum,Bacillariophyceae,urn:lsid:marinespecies.org:taxname:148898,Chromista,group pennate,Morphology
+Protozoa pointy,Kingdom,Protozoa,urn:lsid:marinespecies.org:taxname:5,Protozoa,Protozoa pointy,Morphology
+Protozoa square,Kingdom,Protozoa,urn:lsid:marinespecies.org:taxname:5,Protozoa,Protozoa square,Morphology
+Strombidium morphotype,Genus,Strombidium,urn:lsid:marinespecies.org:taxname:101195,Chromista,Strombidium morphotype1,Morphology
+Thalassiosira chain,Genus,Thalassiosira,urn:lsid:marinespecies.org:taxname:148912,Chromista,Thalassiosira chain,Morphology
+bubble part,NA,-9999,ptwg:bubble,NA,bubble part,Non-plankton
+detritus,NA,-9999,ptwg:detritus,NA,detritus,Non-plankton
+pollen,NA,-9999,mouwlab:pollen,NA,pollen,Non-plankton
+unclassified,NA,-9999,ptwg:other,NA,unclassified,Non-plankton
+other,NA,-9999,ptwg:other,NA,other,Non-plankton
+t,NA,Eukaryota,urn:lsid:algaebase.org:taxname:86701,NA,t001,Temporary

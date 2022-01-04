@@ -1,25 +1,34 @@
 species,type
-Chaetoceros_sp12,Taxonomy
-bubble part,Non-living
-detritus,Non-living
-Asterionella glacialis,
-Bacillaria,Taxonomy
-Tripos sp.,Taxonomy
-Dactyliosolen blavyanus,Taxonomy
-Guinardia delicatula,Taxonomy
-Thalassionema nitzschioides,Taxonomy
-Ciliophora,Taxonomy
-zooplankton,Taxonomy
-Leptocylindrus aporus,Taxonomy
-Chaetoceros elegans,Taxonomy
-Chaetoceros muellerii,Taxonomy
-Licmophora paradoxa,Taxonomy
-Staurosirella sp.,Taxonomy
-Fragilaria vaucheriae,Taxonomy
 Euglenophyceae long,Morphology
-Strombidium morphotype1,Morphology
-Thalassiosira chain,Morphology
+group chaetoceros curly,Morphology
+group pennate,Morphology
 Protozoa pointy,Morphology
 Protozoa square,Morphology
-group pennate,Morphology
-group chaetoceros curly,Morphology
+Strombidium morphotype1,Morphology
+Thalassiosira chain,Morphology
+bubble part,Non-plankton
+detritus,Non-plankton
+pollen,Non-plankton
+unclassified,Non-plankton
+other,Non-plankton
+Actinocyclus,Taxonomy
+Asterionellopsis glacialis,Taxonomy
+Bacillaria,Taxonomy
+Cerataulina bergonii,Taxonomy
+Chaetoceros elegans,Taxonomy
+Chaetoceros jonquieri,Taxonomy
+Chaetoceros muellerii,Taxonomy
+Chaetoceros_sp12,Taxonomy
+Ciliophora,Taxonomy
+Dactyliosolen blavyanus,Taxonomy
+Fragilaria vaucheriae,Taxonomy
+Grammatophora,Taxonomy
+Guinardia delicatula,Taxonomy
+Leptocylindrus aporus,Taxonomy
+Licmophora paradoxa,Taxonomy
+Nitzschia,Taxonomy
+Staurosirella sp.,Taxonomy
+Thalassionema nitzschioides,Taxonomy
+Tripos sp.,Taxonomy
+zooplankton,Taxonomy
+t001,Temporary
