@@ -1,10 +1,10 @@
 ---
-title: "Subsampling of Plankton Imagery Datasets and Reprojection in a reduced space"
+title: "Taxonomy match-up"
 knit: (function(input_file, encoding) {
   out_dir <- '../docs';
   rmarkdown::render(input_file,
  encoding=encoding,
- output_file=file.path(dirname(input_file), out_dir, 'taxmatch.html'))})
+ output_file=file.path(dirname(input_file), out_dir, 'index.html'))})
 author: "Virginie Sonnet \nvirginie_sonnet@uri.edu \nhttps://github.com/VirginieSonnet"
 date: "`r format(Sys.Date(), '%B %dth, %Y')`"
 output:
@@ -35,7 +35,7 @@ knitr::opts_chunk$set(eval=TRUE, # run the code chunks FALSE/TRUE
                       cache=FALSE) # only run the updated code
 ```
 
-```{r, include=FALSE}
+```{r}
 # make sure that no object is in the environment and collect the garbage 
 rm(list=ls())
 gc()
