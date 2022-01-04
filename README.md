@@ -11,8 +11,6 @@
 
 ## Tutorial 
 
-***
-
 This repository contains a tutorial to match categories, especially categories from imagery, to accepted taxonomic names from WoRMS: <https://virginiesonnet.github.io/TaxonomyMatch/>
 
 It tries to incorporate some of the guidelines presented in Neeley et al. (2021) to facilitate submission to databases such as SeaBASS or EDI. 
@@ -21,8 +19,6 @@ It tries to incorporate some of the guidelines presented in Neeley et al. (2021)
 
 
 ## Files 
-
-***
 
 The Rmd version of the tutorial is available in the ***scripts*** folder.
 
