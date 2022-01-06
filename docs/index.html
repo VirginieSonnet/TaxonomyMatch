@@ -206,7 +206,12 @@
       <li><a href="#others">Others</a></li>
       <li><a href="#update-the-species-name">Update the species name</a></li>
       </ul></li>
-      <li><a href="#c.-unresolved-names">C. Unresolved names</a></li>
+      <li><a href="#c.-unresolved-names">C. Unresolved names</a>
+      <ul>
+      <li><a href="#retrieve-taxonomy-from-worms-1">Retrieve taxonomy from Worms</a></li>
+      <li><a href="#duplicates-1">Duplicates</a></li>
+      <li><a href="#hard-code-the-others">Hard code the others</a></li>
+      </ul></li>
       <li><a href="#d.-combine-and-extract-lsid">D. Combine and extract LSID</a>
       <ul>
       <li><a href="#combine-the-tables">Combine the tables</a></li>
@@ -232,7 +237,7 @@
     </div>
     <div id="postamble" data-toggle="wy-nav-shift" class="status">
                   <p class="author"><span class="glyphicon glyphicon-user"></span> Virginie Sonnet <a href="mailto:virginie_sonnet@uri.edu" class="email">virginie_sonnet@uri.edu</a> <a href="https://github.com/VirginieSonnet" class="uri">https://github.com/VirginieSonnet</a></p>
-                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> January 04th, 2022</p>
+                        <p class="date"><span class="glyphicon glyphicon-calendar"></span> January 05th, 2022</p>
           </div>
    </div>
      
@@ -247,13 +252,19 @@ body {
 font-family: "LM Roman";
 text-align: justify}
 </style>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># general </span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse) <span class="co"># data manipulation</span></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># taxonomy </span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(worrms)</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(taxize)</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(taxonomyCleanr)</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># make sure that no object is in the environment and collect the garbage </span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list=</span><span class="fu">ls</span>())</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">gc</span>()</span></code></pre></div>
+<pre><code>##           used (Mb) gc trigger (Mb) max used (Mb)
+## Ncells  579153   31    1331212 71.1   643734 34.4
+## Vcells 1042541    8    8388608 64.0  1649434 12.6</code></pre>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># general </span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse) <span class="co"># data manipulation</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># taxonomy </span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(worrms)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(taxize)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(taxonomyCleanr)</span></code></pre></div>
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
 <p>This code outlines <strong>how to clean a list of categories (here mostly phytoplankton) in order to retrieve a valid accepted name for each.</strong></p>
@@ -268,8 +279,8 @@ mendations in Neeley et al. (2021) in order to facilitate submission to databas
 <div id="a.-initial-data" class="section level2">
 <h2>A. Initial data</h2>
 <p>I will be working with an example file containing 24 categories and I will call the initial input category <em>original_name</em>.</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;../data/example_taxo.csv&quot;</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">original_name=</span>species)</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;../data/example_taxo.csv&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">original_name=</span>species)</span></code></pre></div>
 <p>As names change along the way, here is a table describing what each variable name refers to:</p>
 <table>
 <colgroup>
@@ -319,11 +330,11 @@ mendations in Neeley et al. (2021) in order to facilitate submission to databas
 <li>extra endings (e.g.: <em>cf</em>, <em>sp, sp.</em>)</li>
 <li>digits (can often happen in a list from metabarcoding)</li>
 </ul>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span> </span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># remove all digits </span></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">name=</span><span class="fu">str_remove_all</span>(original_name,<span class="st">&quot;[:digit:]&quot;</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># change underscores for spaces and trim endings </span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">name =</span> <span class="fu">trim_taxa</span>(name))</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span> </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># remove all digits </span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">name=</span><span class="fu">str_remove_all</span>(original_name,<span class="st">&quot;[:digit:]&quot;</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># change underscores for spaces and trim endings </span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">name =</span> <span class="fu">trim_taxa</span>(name))</span></code></pre></div>
 </div>
 </div>
 <div id="taxonomy" class="section level1">
@@ -331,43 +342,34 @@ mendations in Neeley et al. (2021) in order to facilitate submission to databas
 <div id="a.-presence-in-a-database" class="section level2">
 <h2>A. Presence in a database</h2>
 <p>The first thing to try is to see if <code>gnr_resolve</code> can resolve the names against a variety of data sources using exact or fuzzy matching.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>tax <span class="ot">&lt;-</span> <span class="fu">filter</span>(data, type<span class="sc">==</span><span class="st">&quot;Taxonomy&quot;</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>tax</span></code></pre></div>
-<pre><code>## # A tibble: 20 x 3
-##    original_name               type     name                       
-##    &lt;chr&gt;                       &lt;chr&gt;    &lt;chr&gt;                      
-##  1 Actinocyclus                Taxonomy Actinocyclus               
-##  2 Asterionellopsis glacialis  Taxonomy Asterionellopsis glacialis 
-##  3 Bacillaria                  Taxonomy Bacillaria                 
-##  4 Cerataulina bergonii        Taxonomy Cerataulina bergonii       
-##  5 Chaetoceros elegans         Taxonomy Chaetoceros elegans        
-##  6 Chaetoceros jonquieri       Taxonomy Chaetoceros jonquieri      
-##  7 Chaetoceros muellerii       Taxonomy Chaetoceros muellerii      
-##  8 Chaetoceros_sp12            Taxonomy Chaetoceros                
-##  9 Ciliophora                  Taxonomy Ciliophora                 
-## 10 Dactyliosolen blavyanus     Taxonomy Dactyliosolen blavyanus    
-## 11 Fragilaria vaucheriae       Taxonomy Fragilaria vaucheriae      
-## 12 Grammatophora               Taxonomy Grammatophora              
-## 13 Guinardia delicatula        Taxonomy Guinardia delicatula       
-## 14 Leptocylindrus aporus       Taxonomy Leptocylindrus aporus      
-## 15 Licmophora paradoxa         Taxonomy Licmophora paradoxa        
-## 16 Nitzschia                   Taxonomy Nitzschia                  
-## 17 Staurosirella sp.           Taxonomy Staurosirella              
-## 18 Thalassionema nitzschioides Taxonomy Thalassionema nitzschioides
-## 19 Tripos sp.                  Taxonomy Tripos                     
-## 20 zooplankton                 Taxonomy zooplankton</code></pre>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>tax <span class="ot">&lt;-</span> <span class="fu">filter</span>(data, type<span class="sc">==</span><span class="st">&quot;Taxonomy&quot;</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>tax</span></code></pre></div>
+<pre><code>## # A tibble: 21 x 3
+##    original_name              type     name                      
+##    &lt;chr&gt;                      &lt;chr&gt;    &lt;chr&gt;                     
+##  1 Actinocyclus               Taxonomy Actinocyclus              
+##  2 Asterionellopsis glacialis Taxonomy Asterionellopsis glacialis
+##  3 Bacillaria                 Taxonomy Bacillaria                
+##  4 Baccillaria paxillifer     Taxonomy Baccillaria paxillifer    
+##  5 Cerataulina bergonii       Taxonomy Cerataulina bergonii      
+##  6 Chaetoceros elegans        Taxonomy Chaetoceros elegans       
+##  7 Chaetoceros jonquieri      Taxonomy Chaetoceros jonquieri     
+##  8 Chaetoceros muellerii      Taxonomy Chaetoceros muellerii     
+##  9 Chaetoceros_sp12           Taxonomy Chaetoceros               
+## 10 Ciliophora                 Taxonomy Ciliophora                
+## # ... with 11 more rows</code></pre>
 <p>There are many databases that include marine organisms (listed in <code>gnr_datasources()</code>) but here I use Worms (9) and algaeBase (195). Note that within the function <code>gnr_resolve</code>.</p>
 <p>There are 2 advantages of that step:</p>
 <ol style="list-style-type: decimal">
 <li>See which species we might have to code by hand</li>
 <li>Get a name accepted by databases</li>
 </ol>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>temp <span class="ot">&lt;-</span> <span class="fu">gnr_resolve</span>(tax<span class="sc">$</span>name, <span class="at">canonical =</span> T,</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>                    <span class="at">best_match_only =</span> T, <span class="at">preferred_data_sources =</span> <span class="fu">c</span>(<span class="dv">9</span>,<span class="dv">195</span>))</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># look at the one(s) for which no match was found </span></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>sp_unresolved <span class="ot">=</span> <span class="fu">setdiff</span>(tax<span class="sc">$</span>name, temp<span class="sc">$</span>user_supplied_name)</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>sp_unresolved</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>temp <span class="ot">&lt;-</span> <span class="fu">gnr_resolve</span>(tax<span class="sc">$</span>name, <span class="at">canonical =</span> T,</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>                    <span class="at">best_match_only =</span> T, <span class="at">preferred_data_sources =</span> <span class="fu">c</span>(<span class="dv">9</span>,<span class="dv">195</span>))</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="co"># look at the one(s) for which no match was found </span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>sp_unresolved <span class="ot">=</span> <span class="fu">setdiff</span>(tax<span class="sc">$</span>name, temp<span class="sc">$</span>user_supplied_name)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>sp_unresolved</span></code></pre></div>
 <pre><code>## [1] &quot;Chaetoceros muellerii&quot; &quot;zooplankton&quot;</code></pre>
 <p><strong>Attention!</strong> When working with metabarcoding data, some species can be matched up to the genus if the species is unknown from the databases (e.g.: <em>Chaetoceros jonquieri</em> here). These species might have never been described morphologically and added to the databases yet. You should always review a taxonomic list at the end.</p>
 <p>The list of unresolved species might get longer later if some of the resolved species are not in Worms but I will update it later.</p>
@@ -379,9 +381,9 @@ mendations in Neeley et al. (2021) in order to facilitate submission to databas
 <p>Now I want to determine if those resolved names (i.e.: the matched names I got from above) I get are found in the Worms database and if they are accepted version or not.</p>
 <p><u> Note </u>: It can happen that the vector of names is too long, in that case, you can just split it in 2 or 3 and resolve each vector.</p>
 <p>I use the function <code>wm_records_names</code> which returns a list, a format unpractical in that case so I use the <code>map</code> function from the package <code>purr</code> to change it to a tibble. The function allows to precise if we want only marine organisms and to use fuzzy matching or not. I would recommend first to not use fuzzy matching and keep only marine and expand in the unresolved section if no results are found.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>resolved <span class="ot">&lt;-</span> <span class="fu">wm_records_names</span>(<span class="at">name=</span><span class="fu">unique</span>(temp<span class="sc">$</span>matched_name2)) <span class="sc">%&gt;%</span> </span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map_dfr</span>(as_tibble, <span class="at">.name_repair =</span> <span class="st">&quot;minimal&quot;</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(scientificname)</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>resolved <span class="ot">&lt;-</span> <span class="fu">wm_records_names</span>(<span class="at">name=</span><span class="fu">unique</span>(temp<span class="sc">$</span>matched_name2)) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map_dfr</span>(as_tibble, <span class="at">.name_repair =</span> <span class="st">&quot;minimal&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(scientificname)</span></code></pre></div>
 <p>The results can have one of 4 status:</p>
 <ul>
 <li><p><strong>accepted</strong>: the name is the general accepted name and it as been verified/assessed</p></li>
@@ -393,10 +395,10 @@ mendations in Neeley et al. (2021) in order to facilitate submission to databas
 <div id="duplicates" class="section level3">
 <h3>Duplicates</h3>
 <p>It’s always good to check for duplicates.</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>dup <span class="ot">&lt;-</span> resolved <span class="sc">%&gt;%</span> </span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(scientificname) <span class="sc">%&gt;%</span> </span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">n</span>()<span class="sc">&gt;</span><span class="dv">1</span>)</span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>dup</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>dup <span class="ot">&lt;-</span> resolved <span class="sc">%&gt;%</span> </span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(scientificname) <span class="sc">%&gt;%</span> </span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">n</span>()<span class="sc">&gt;</span><span class="dv">1</span>)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>dup</span></code></pre></div>
 <pre><code>## # A tibble: 6 x 27
 ## # Groups:   scientificname [3]
 ##   AphiaID url   scientificname authority status unacceptreason taxonRankID rank 
@@ -421,14 +423,14 @@ mendations in Neeley et al. (2021) in order to facilitate submission to databas
 <li><p>if there is one <em>accepted</em> and one <em>uncertain</em> (should not happen normally): keep the <em>accepted</em> if they have the same lineage</p></li>
 <li><p>if there is one marine and one freshwater species (assuming you ran the search with <code>marine_only=FALSE</code>): keep the marine one if they have the same lineage (unless you are studying a freshwater station!)</p></li>
 </ul>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># choose accepted or uncertain status if more than 2 occurrences </span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>resolved <span class="ot">&lt;-</span> resolved <span class="sc">%&gt;%</span> </span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(scientificname) <span class="sc">%&gt;%</span> </span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">n</span>()<span class="sc">==</span><span class="dv">1</span> <span class="sc">|</span> (<span class="fu">n</span>() <span class="sc">&gt;</span> <span class="dv">1</span> <span class="sc">&amp;</span> status <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;accepted&quot;</span>,<span class="st">&quot;uncertain&quot;</span>)))</span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="co"># choose the Chromista over Animalia if more than 2 occurrences </span></span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(dup, kingdom<span class="sc">==</span><span class="st">&quot;Animalia&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># choose accepted or uncertain status if more than 2 occurrences </span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>resolved <span class="ot">&lt;-</span> resolved <span class="sc">%&gt;%</span> </span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(scientificname) <span class="sc">%&gt;%</span> </span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">n</span>()<span class="sc">==</span><span class="dv">1</span> <span class="sc">|</span> (<span class="fu">n</span>() <span class="sc">&gt;</span> <span class="dv">1</span> <span class="sc">&amp;</span> status <span class="sc">%in%</span> <span class="fu">c</span>(<span class="st">&quot;accepted&quot;</span>,<span class="st">&quot;uncertain&quot;</span>)))</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="co"># choose the Chromista over Animalia if more than 2 occurrences </span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(dup, kingdom<span class="sc">==</span><span class="st">&quot;Animalia&quot;</span>)</span></code></pre></div>
 <pre><code>## # A tibble: 2 x 27
 ## # Groups:   scientificname [2]
 ##   AphiaID url   scientificname authority status unacceptreason taxonRankID rank 
@@ -441,73 +443,75 @@ mendations in Neeley et al. (2021) in order to facilitate submission to databas
 ## #   citation &lt;chr&gt;, lsid &lt;chr&gt;, isMarine &lt;int&gt;, isBrackish &lt;int&gt;,
 ## #   isFreshwater &lt;int&gt;, isTerrestrial &lt;int&gt;, isExtinct &lt;int&gt;, match_type &lt;chr&gt;,
 ## #   modified &lt;chr&gt;</code></pre>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>resolved <span class="ot">&lt;-</span> resolved <span class="sc">%&gt;%</span> </span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(scientificname) <span class="sc">%&gt;%</span> </span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">n</span>()<span class="sc">==</span><span class="dv">1</span> <span class="sc">|</span> (<span class="fu">n</span>() <span class="sc">&gt;</span> <span class="dv">1</span> <span class="sc">&amp;</span> kingdom <span class="sc">!=</span> <span class="st">&quot;Animalia&quot;</span>))</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="co"># remove duplicated rows </span></span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>resolved <span class="ot">&lt;-</span> resolved <span class="sc">%&gt;%</span> </span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>()</span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a><span class="co"># if there is uncertain and accepted, keep only accepted if mroe than 2 occurrences</span></span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>resolved <span class="ot">&lt;-</span> resolved <span class="sc">%&gt;%</span> </span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(scientificname) <span class="sc">%&gt;%</span> </span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">n</span>()<span class="sc">==</span><span class="dv">1</span> <span class="sc">|</span> (<span class="fu">n</span>() <span class="sc">&gt;</span> <span class="dv">1</span> <span class="sc">&amp;</span> <span class="fu">length</span>(<span class="fu">unique</span>(status)) <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">|</span> (<span class="fu">n</span>() <span class="sc">&gt;</span> <span class="dv">1</span> <span class="sc">&amp;</span> <span class="fu">length</span>(<span class="fu">unique</span>(status)) <span class="sc">==</span> <span class="dv">2</span> <span class="sc">&amp;</span> status <span class="sc">==</span> <span class="st">&quot;accepted&quot;</span>))</span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a><span class="co"># if a marine taxon exist, keep the marine taxon (assuming you did your search on both marine and freshwater) if more than 2 occurrences </span></span>
-<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>resolved <span class="ot">&lt;-</span> resolved <span class="sc">%&gt;%</span> </span>
-<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(scientificname) <span class="sc">%&gt;%</span> </span>
-<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">n</span>()<span class="sc">==</span><span class="dv">1</span> <span class="sc">|</span> (<span class="fu">n</span>() <span class="sc">&gt;</span> <span class="dv">1</span> <span class="sc">&amp;</span> <span class="fu">sum</span>(isMarine, <span class="at">na.rm=</span><span class="cn">TRUE</span>) <span class="sc">==</span> <span class="dv">0</span>) <span class="sc">|</span> (<span class="fu">n</span>() <span class="sc">&gt;</span> <span class="dv">1</span> <span class="sc">&amp;</span> <span class="fu">sum</span>(isMarine, <span class="at">na.rm=</span><span class="cn">TRUE</span>) <span class="sc">!=</span> <span class="dv">0</span> <span class="sc">&amp;</span> isMarine<span class="sc">==</span><span class="dv">1</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>resolved <span class="ot">&lt;-</span> resolved <span class="sc">%&gt;%</span> </span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(scientificname) <span class="sc">%&gt;%</span> </span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">n</span>()<span class="sc">==</span><span class="dv">1</span> <span class="sc">|</span> (<span class="fu">n</span>() <span class="sc">&gt;</span> <span class="dv">1</span> <span class="sc">&amp;</span> kingdom <span class="sc">!=</span> <span class="st">&quot;Animalia&quot;</span>))</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="co"># remove duplicated rows </span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>resolved <span class="ot">&lt;-</span> resolved <span class="sc">%&gt;%</span> </span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>()</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="co"># if there is uncertain and accepted, keep only accepted if mroe than 2 occurrences</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>resolved <span class="ot">&lt;-</span> resolved <span class="sc">%&gt;%</span> </span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(scientificname) <span class="sc">%&gt;%</span> </span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">n</span>()<span class="sc">==</span><span class="dv">1</span> <span class="sc">|</span> (<span class="fu">n</span>() <span class="sc">&gt;</span> <span class="dv">1</span> <span class="sc">&amp;</span> <span class="fu">length</span>(<span class="fu">unique</span>(status)) <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">|</span> (<span class="fu">n</span>() <span class="sc">&gt;</span> <span class="dv">1</span> <span class="sc">&amp;</span> <span class="fu">length</span>(<span class="fu">unique</span>(status)) <span class="sc">==</span> <span class="dv">2</span> <span class="sc">&amp;</span> status <span class="sc">==</span> <span class="st">&quot;accepted&quot;</span>))</span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="co"># if a marine taxon exist, keep the marine taxon (assuming you did your search on both marine and freshwater) if more than 2 occurrences </span></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>resolved <span class="ot">&lt;-</span> resolved <span class="sc">%&gt;%</span> </span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(scientificname) <span class="sc">%&gt;%</span> </span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">n</span>()<span class="sc">==</span><span class="dv">1</span> <span class="sc">|</span> (<span class="fu">n</span>() <span class="sc">&gt;</span> <span class="dv">1</span> <span class="sc">&amp;</span> <span class="fu">sum</span>(isMarine, <span class="at">na.rm=</span><span class="cn">TRUE</span>) <span class="sc">==</span> <span class="dv">0</span>) <span class="sc">|</span> (<span class="fu">n</span>() <span class="sc">&gt;</span> <span class="dv">1</span> <span class="sc">&amp;</span> <span class="fu">sum</span>(isMarine, <span class="at">na.rm=</span><span class="cn">TRUE</span>) <span class="sc">!=</span> <span class="dv">0</span> <span class="sc">&amp;</span> isMarine<span class="sc">==</span><span class="dv">1</span>))</span></code></pre></div>
 <p>If a few are left it is probably better to resolve them by hand. You can for instance look at the reference for this taxon in algaeBase. If they both have the same taxonomic lineage, then it is not too much of a difference.</p>
 </div>
 <div id="others" class="section level3">
 <h3>Others</h3>
 <p>Now I check if we have a different number of rows between number of taxonomic categories and the number of resolved ones plus unresolved. This will indicate if there are more missing categories than the ones previously identified as unresolved.</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># check that you have the correct number of rows: all taxo - non resolved ones</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(resolved) <span class="sc">!=</span> (<span class="fu">nrow</span>(tax)<span class="sc">-</span><span class="fu">length</span>(sp_unresolved))) {</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">warning</span>(<span class="st">&quot;One or more taxon are missing: either wm_records_names failed for them or they were deleted during the duplicate selection.&quot;</span>)</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>} </span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># check that you have the correct number of rows: all taxo - non resolved ones</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(resolved) <span class="sc">!=</span> (<span class="fu">nrow</span>(tax)<span class="sc">-</span><span class="fu">length</span>(sp_unresolved))) {</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">warning</span>(<span class="st">&quot;One or more taxon are missing: either wm_records_names failed for them or they were deleted during the duplicate selection.&quot;</span>)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>} </span></code></pre></div>
 <pre><code>## Warning: One or more taxon are missing: either wm_records_names failed for them
 ## or they were deleted during the duplicate selection.</code></pre>
 <p>Keep in mind that <code>wm_records_names</code> may fail to find a match for a few species even though <code>gnr_resolve</code> found them. These can be treated with the previously unresolved names. It can also retrieve an AlphiaID but no species names if this ID is in quarantine (e.g.: <em>Leptocylindrus aporus</em>), these can be removed and dealt with the unresolved ones too.</p>
-<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># remove the ones that are in quarantine = no name was returned </span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>resolved <span class="ot">&lt;-</span> <span class="fu">filter</span>(resolved, <span class="sc">!</span><span class="fu">is.na</span>(scientificname))</span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># remove the ones that are in quarantine = no name was returned </span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>resolved <span class="ot">&lt;-</span> <span class="fu">filter</span>(resolved, <span class="sc">!</span><span class="fu">is.na</span>(scientificname))</span></code></pre></div>
 </div>
 <div id="update-the-species-name" class="section level3">
 <h3>Update the species name</h3>
 <p>So this process returned a <em>scientifiname</em> based on the <em>matched_name2</em> but I want to keep the name I originally supplied because that’s the one that’s on my main name list so I will add a column a join the two tables.</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># join the two tables </span></span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>resolved <span class="ot">&lt;-</span> temp <span class="sc">%&gt;%</span> </span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">name=</span>user_supplied_name,<span class="at">scientificname=</span>matched_name2) <span class="sc">%&gt;%</span> </span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">right_join</span>(resolved)</span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a><span class="co"># check that there are no missing values in the name column </span></span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(<span class="fu">filter</span>(resolved,<span class="fu">is.na</span>(name))) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">warning</span>(<span class="st">&quot;The joining process failed for one or more categories&quot;</span>)</span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>} </span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># join the two tables </span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>resolved <span class="ot">&lt;-</span> temp <span class="sc">%&gt;%</span> </span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">name=</span>user_supplied_name,<span class="at">scientificname=</span>matched_name2) <span class="sc">%&gt;%</span> </span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">right_join</span>(resolved)</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="co"># check that there are no missing values in the name column </span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(<span class="fu">filter</span>(resolved,<span class="fu">is.na</span>(name))) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">warning</span>(<span class="st">&quot;The joining process failed for one or more categories&quot;</span>)</span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>} </span></code></pre></div>
 </div>
 </div>
 <div id="c.-unresolved-names" class="section level2">
 <h2>C. Unresolved names</h2>
 <p>Let’s first update the unresolved categories list.</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>sp_unresolved <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(tax<span class="sc">$</span>name,resolved<span class="sc">$</span>name)</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>sp_unresolved</span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>sp_unresolved <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(tax<span class="sc">$</span>name,resolved<span class="sc">$</span>name)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>sp_unresolved</span></code></pre></div>
 <pre><code>## [1] &quot;Chaetoceros elegans&quot;   &quot;Chaetoceros muellerii&quot; &quot;Fragilaria vaucheriae&quot;
 ## [4] &quot;Leptocylindrus aporus&quot; &quot;Licmophora paradoxa&quot;   &quot;Staurosirella&quot;        
 ## [7] &quot;zooplankton&quot;</code></pre>
+<div id="retrieve-taxonomy-from-worms-1" class="section level3">
+<h3>Retrieve taxonomy from Worms</h3>
 <p>Now if there are several, you can run functions with fuzzy matching and non-marine species. <code>wm_records_taxamatch</code> uses the TAXAMATCH fuzzy matching algorithm and will apply small corrections to the name while <code>wm_records_names</code> with fuxxy matching will also return all of the children.</p>
 <p>However, since the scientificname will be different from the input name (due to the fuzzy matching) you will have to add an extra column and manually enter the original names if you want to keep track of the original and taxonomically accepted name. Once done, you can evaluate which ones you keep in a similar way as for the resolved species.</p>
 <p>Let’s start with <code>wm_records_taxamatch</code>.</p>
-<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># TAXAMATCH </span></span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a> unresolved <span class="ot">&lt;-</span> <span class="fu">wm_records_taxamatch</span>(sp_unresolved,<span class="at">marine_only =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map_dfr</span>(as_tibble, <span class="at">.name_repair =</span> <span class="st">&quot;minimal&quot;</span>)</span></code></pre></div>
-<p>Now we can look at which ones were not exact match and update their name. Again, we might have some quarantined returning NAs so these will be removed.</p>
-<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># non-exact match type </span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(unresolved, match_type<span class="sc">!=</span><span class="st">&quot;exact&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># TAXAMATCH </span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a> unresolved <span class="ot">&lt;-</span> <span class="fu">wm_records_taxamatch</span>(sp_unresolved,<span class="at">marine_only =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map_dfr</span>(as_tibble, <span class="at">.name_repair =</span> <span class="st">&quot;minimal&quot;</span>)</span></code></pre></div>
+<p>Now we can look at which ones were not exact match and update their name. We are thus keeping the exact matches and the updated names ones. Again, we might have some quarantined returning NAs so these will be removed.</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># non-exact match type </span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(unresolved, match_type<span class="sc">!=</span><span class="st">&quot;exact&quot;</span>)</span></code></pre></div>
 <pre><code>## # A tibble: 1 x 27
 ##   AphiaID url   scientificname authority status unacceptreason taxonRankID rank 
 ##     &lt;int&gt; &lt;chr&gt; &lt;chr&gt;          &lt;chr&gt;     &lt;chr&gt;  &lt;chr&gt;                &lt;int&gt; &lt;chr&gt;
@@ -518,100 +522,122 @@ mendations in Neeley et al. (2021) in order to facilitate submission to databas
 ## #   citation &lt;chr&gt;, lsid &lt;chr&gt;, isMarine &lt;int&gt;, isBrackish &lt;int&gt;,
 ## #   isFreshwater &lt;int&gt;, isTerrestrial &lt;int&gt;, isExtinct &lt;int&gt;, match_type &lt;chr&gt;,
 ## #   modified &lt;chr&gt;</code></pre>
-<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># add the original name </span></span>
-<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>unresolved <span class="ot">&lt;-</span> unresolved <span class="sc">%&gt;%</span> </span>
-<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># copy all of them </span></span>
-<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">name =</span> scientificname) <span class="sc">%&gt;%</span> </span>
-<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># update the wrong ones (can also use str_detect)</span></span>
-<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">name =</span> <span class="fu">case_when</span>(name<span class="sc">==</span><span class="st">&quot;Chaetoceros muelleri&quot;</span><span class="sc">~</span><span class="st">&quot;Chaetoceros muellerii&quot;</span>,</span>
-<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>                          <span class="cn">TRUE</span> <span class="sc">~</span> name)) <span class="sc">%&gt;%</span> </span>
-<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># remove the ones that returned NA (quarantined)</span></span>
-<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(name))</span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># add the original name </span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>unresolved <span class="ot">&lt;-</span> unresolved <span class="sc">%&gt;%</span> </span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># update the wrong ones (can also use str_detect)</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">name =</span> <span class="fu">case_when</span>(match_type<span class="sc">==</span><span class="st">&quot;exact&quot;</span><span class="sc">~</span>scientificname,</span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>                          name<span class="sc">==</span><span class="st">&quot;Chaetoceros muelleri&quot;</span><span class="sc">~</span><span class="st">&quot;Chaetoceros muellerii&quot;</span>,</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>                          <span class="cn">TRUE</span> <span class="sc">~</span> <span class="cn">NA_character_</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># remove the ones that returned NA (quarantined)</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(name))</span></code></pre></div>
+<pre><code>## Error: Problem with `mutate()` column `name`.
+## i `name = case_when(...)`.
+## x object &#39;name&#39; not found</code></pre>
+</div>
+<div id="duplicates-1" class="section level3">
+<h3>Duplicates</h3>
 <p>Next thing is to check for duplicates (see section B) check if there are duplicates, run a few filters as seen for the resolved names and check again for duplicates before adding to the resolved table.</p>
-<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>dup <span class="ot">&lt;-</span> unresolved <span class="sc">%&gt;%</span> </span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(scientificname) <span class="sc">%&gt;%</span> </span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">n</span>()<span class="sc">&gt;</span><span class="dv">1</span>)</span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>dup</span></code></pre></div>
-<pre><code>## # A tibble: 0 x 28
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>dup <span class="ot">&lt;-</span> unresolved <span class="sc">%&gt;%</span> </span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(scientificname) <span class="sc">%&gt;%</span> </span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">n</span>()<span class="sc">&gt;</span><span class="dv">1</span>)</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>dup</span></code></pre></div>
+<pre><code>## # A tibble: 0 x 27
 ## # Groups:   scientificname [0]
-## # ... with 28 variables: AphiaID &lt;int&gt;, url &lt;chr&gt;, scientificname &lt;chr&gt;,
+## # ... with 27 variables: AphiaID &lt;int&gt;, url &lt;chr&gt;, scientificname &lt;chr&gt;,
 ## #   authority &lt;chr&gt;, status &lt;chr&gt;, unacceptreason &lt;chr&gt;, taxonRankID &lt;int&gt;,
 ## #   rank &lt;chr&gt;, valid_AphiaID &lt;int&gt;, valid_name &lt;chr&gt;, valid_authority &lt;chr&gt;,
 ## #   parentNameUsageID &lt;int&gt;, kingdom &lt;chr&gt;, phylum &lt;chr&gt;, class &lt;chr&gt;,
 ## #   order &lt;chr&gt;, family &lt;chr&gt;, genus &lt;chr&gt;, citation &lt;chr&gt;, lsid &lt;chr&gt;,
 ## #   isMarine &lt;int&gt;, isBrackish &lt;int&gt;, isFreshwater &lt;int&gt;, isTerrestrial &lt;int&gt;,
-## #   isExtinct &lt;int&gt;, match_type &lt;chr&gt;, modified &lt;chr&gt;, name &lt;chr&gt;</code></pre>
+## #   isExtinct &lt;int&gt;, match_type &lt;chr&gt;, modified &lt;chr&gt;</code></pre>
 <p>In this case, there are no duplicates but some categories are still not resolved.</p>
-<div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(unresolved) <span class="sc">&lt;</span> <span class="fu">length</span>(sp_unresolved)) {</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">warning</span>(<span class="st">&quot;There are still categories unresolved.&quot;</span>)</span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>} </span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(unresolved) <span class="sc">&lt;</span> <span class="fu">length</span>(sp_unresolved)) {</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">warning</span>(<span class="st">&quot;There are still categories unresolved.&quot;</span>)</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>} </span></code></pre></div>
 <pre><code>## Warning: There are still categories unresolved.</code></pre>
-<p>These are harder to determine. They may be due to more general categories or common names. You can try to run the function <code>get_wormsid</code> indicating <code>searchtype=&quot;common&quot;</code> but you will likely have to hard code them.</p>
-<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>sp_unresolved[<span class="sc">!</span>(sp_unresolved <span class="sc">%in%</span> unresolved<span class="sc">$</span>name)]</span></code></pre></div>
-<pre><code>## [1] &quot;Leptocylindrus aporus&quot; &quot;zooplankton&quot;</code></pre>
-<p>I can check first if they appear in any database:</p>
-<div class="sourceCode" id="cb30"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gnr_resolve</span>(sp_unresolved[<span class="sc">!</span>(sp_unresolved <span class="sc">%in%</span> unresolved<span class="sc">$</span>name)])</span></code></pre></div>
-<pre><code>## # A tibble: 4 x 5
-##   user_supplied_name    submitted_name  matched_name     data_source_title score
-## * &lt;chr&gt;                 &lt;chr&gt;           &lt;chr&gt;            &lt;chr&gt;             &lt;dbl&gt;
-## 1 Leptocylindrus aporus Leptocylindrus~ Leptocylindrus ~ National Center ~ 0.988
-## 2 Leptocylindrus aporus Leptocylindrus~ Leptocylindrus ~ Encyclopedia of ~ 0.988
-## 3 Leptocylindrus aporus Leptocylindrus~ Leptocylindrus ~ Open Tree of Lif~ 0.988
-## 4 Leptocylindrus aporus Leptocylindrus~ Leptocylindrus ~ AlgaeBase         0.988</code></pre>
+</div>
+<div id="hard-code-the-others" class="section level3">
+<h3>Hard code the others</h3>
+<p>These are harder to determine. They may be due to more general categories or common names. You can try to run the function <code>get_wormsid</code> indicating <code>searchtype=&quot;common&quot;</code> or <code>wm_records_names</code> with <code>fuzzy=TRUE</code> but you will likely have to hard code them and it’s also faster if you have only a few of them.</p>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>sp_unresolved[<span class="sc">!</span>(sp_unresolved <span class="sc">%in%</span> unresolved<span class="sc">$</span>name)]</span></code></pre></div>
+<pre><code>## Warning: Unknown or uninitialised column: `name`.</code></pre>
+<pre><code>## [1] &quot;Chaetoceros elegans&quot;   &quot;Chaetoceros muellerii&quot; &quot;Fragilaria vaucheriae&quot;
+## [4] &quot;Leptocylindrus aporus&quot; &quot;Licmophora paradoxa&quot;   &quot;Staurosirella&quot;        
+## [7] &quot;zooplankton&quot;</code></pre>
+<p>I can check first if they appear in any database, that can give an indication of what the name could be.</p>
+<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">gnr_resolve</span>(sp_unresolved[<span class="sc">!</span>(sp_unresolved <span class="sc">%in%</span> unresolved<span class="sc">$</span>name)])</span></code></pre></div>
+<pre><code>## Warning: Unknown or uninitialised column: `name`.</code></pre>
+<pre><code>## # A tibble: 79 x 5
+##    user_supplied_name  submitted_name      matched_name   data_source_tit~ score
+##  * &lt;chr&gt;               &lt;chr&gt;               &lt;chr&gt;          &lt;chr&gt;            &lt;dbl&gt;
+##  1 Chaetoceros elegans Chaetoceros elegans Chaetoceros e~ National Center~ 0.988
+##  2 Chaetoceros elegans Chaetoceros elegans Chaetoceros e~ Encyclopedia of~ 0.988
+##  3 Chaetoceros elegans Chaetoceros elegans Chaetoceros e~ Arctos           0.988
+##  4 Chaetoceros elegans Chaetoceros elegans Chaetoceros e~ Open Tree of Li~ 0.988
+##  5 Chaetoceros elegans Chaetoceros elegans Chaetoceros e~ Wikispecies      0.988
+##  6 Chaetoceros elegans Chaetoceros elegans Chaetoceros e~ World Register ~ 0.988
+##  7 Chaetoceros elegans Chaetoceros elegans Chaetoceros e~ GBIF Backbone T~ 0.988
+##  8 Chaetoceros elegans Chaetoceros elegans Chaetoceros e~ GBIF Backbone T~ 0.988
+##  9 Chaetoceros elegans Chaetoceros elegans Chaetoceros e~ The National Ch~ 0.988
+## 10 Chaetoceros elegans Chaetoceros elegans Chaetoceros e~ AlgaeBase        0.988
+## # ... with 69 more rows</code></pre>
 <p>In this case, I still have 2 unresolved ones:</p>
 <ul>
 <li><p><em>zooplankton</em> which I will match to <em>Animalia</em></p></li>
 <li><p><em>Leptocylindrus aporus</em>: in algaeBase it corresponds to <em>Leptocylindrus danicus var. aporus</em> which is in quarantine in Worms so I’ll just code it as <em>Leptocylindrus danicus</em></p></li>
 </ul>
-<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co"># get the taxonomy for the updated names </span></span>
-<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>unresolved_manual <span class="ot">&lt;-</span> <span class="fu">wm_records_names</span>(<span class="fu">c</span>(<span class="st">&quot;Leptocylindrus danicus&quot;</span>,<span class="st">&quot;Animalia&quot;</span>), <span class="at">marine_only =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map_dfr</span>(as_tibble, <span class="at">.name_repair =</span> <span class="st">&quot;minimal&quot;</span>)</span>
-<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="co"># add the initial name </span></span>
-<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>unresolved_manual <span class="ot">&lt;-</span> unresolved_manual <span class="sc">%&gt;%</span> </span>
-<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># add a column with the name </span></span>
-<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">name =</span> <span class="fu">case_when</span>(<span class="fu">str_detect</span>(scientificname,<span class="st">&quot;danicus&quot;</span>)<span class="sc">~</span><span class="st">&quot;Leptocylindrus aporus&quot;</span>,</span>
-<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>                          scientificname<span class="sc">==</span><span class="st">&quot;Animalia&quot;</span><span class="sc">~</span><span class="st">&quot;zooplankton&quot;</span>,</span>
-<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>                          <span class="cn">TRUE</span> <span class="sc">~</span> <span class="cn">NA_character_</span>)) </span></code></pre></div>
+<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="co"># get the taxonomy for the updated names </span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>unresolved_manual <span class="ot">&lt;-</span> <span class="fu">wm_records_names</span>(<span class="fu">c</span>(<span class="st">&quot;Leptocylindrus danicus&quot;</span>,<span class="st">&quot;Animalia&quot;</span>), <span class="at">marine_only =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map_dfr</span>(as_tibble, <span class="at">.name_repair =</span> <span class="st">&quot;minimal&quot;</span>)</span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a><span class="co"># add the initial name </span></span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a>unresolved_manual <span class="ot">&lt;-</span> unresolved_manual <span class="sc">%&gt;%</span> </span>
+<span id="cb37-8"><a href="#cb37-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># add a column with the name </span></span>
+<span id="cb37-9"><a href="#cb37-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">name =</span> <span class="fu">case_when</span>(<span class="fu">str_detect</span>(scientificname,<span class="st">&quot;danicus&quot;</span>)<span class="sc">~</span><span class="st">&quot;Leptocylindrus aporus&quot;</span>,</span>
+<span id="cb37-10"><a href="#cb37-10" aria-hidden="true" tabindex="-1"></a>                          scientificname<span class="sc">==</span><span class="st">&quot;Animalia&quot;</span><span class="sc">~</span><span class="st">&quot;zooplankton&quot;</span>,</span>
+<span id="cb37-11"><a href="#cb37-11" aria-hidden="true" tabindex="-1"></a>                          <span class="cn">TRUE</span> <span class="sc">~</span> <span class="cn">NA_character_</span>)) </span></code></pre></div>
+</div>
 </div>
 <div id="d.-combine-and-extract-lsid" class="section level2">
 <h2>D. Combine and extract LSID</h2>
 <div id="combine-the-tables" class="section level3">
 <h3>Combine the tables</h3>
 <p>We can combine all of our tables and check that we have the same number of taxon that in the original tax table.</p>
-<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>taxres <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(resolved,unresolved,unresolved_manual)</span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span>(<span class="fu">is_empty</span>(<span class="fu">setdiff</span>(tax<span class="sc">$</span>name,taxres<span class="sc">$</span>name)))) {</span>
-<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">warning</span>(<span class="st">&quot;There are missing categories between the original list and the resolved one.&quot;</span>)</span>
-<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>} </span></code></pre></div>
+<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>taxres <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(resolved,unresolved,unresolved_manual)</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span>(<span class="fu">is_empty</span>(<span class="fu">setdiff</span>(tax<span class="sc">$</span>name,taxres<span class="sc">$</span>name)))) {</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">warning</span>(<span class="st">&quot;There are missing categories between the original list and the resolved one.&quot;</span>)</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>} </span></code></pre></div>
+<pre><code>## Warning: There are missing categories between the original list and the resolved
+## one.</code></pre>
 </div>
 <div id="update-species-and-lsid-for-the-accepted-ones" class="section level3">
 <h3>Update species and LSID for the accepted ones</h3>
 <p>The function <code>wm_records_names</code> also return the accepted names (valid_name) and corresponding AphiaID (valid_AphiaID) for each taxon. I can thus swap out these.</p>
 <p>The <em>alternate representation</em> is tricky because it sometimes swap out a marine associated name for a freshwater associated one. However, for the sake of matching databases and taxonomic lists, it is easier to have a common accepted name between the databases. The original name will, anyway, stay in the table for reference.</p>
-<div class="sourceCode" id="cb34"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>taxres <span class="ot">&lt;-</span> taxres <span class="sc">%&gt;%</span> </span>
-<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># rename the valid name as scientificName  </span></span>
-<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">scientificName =</span> valid_name)</span></code></pre></div>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>taxres <span class="ot">&lt;-</span> taxres <span class="sc">%&gt;%</span> </span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># rename the valid name as scientificName  </span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">scientificName =</span> valid_name)</span></code></pre></div>
 </div>
 <div id="retrieve-the-lsid" class="section level3">
 <h3>Retrieve the LSID</h3>
 <p>The LSID is constructed using the AphiaID, the specific taxon id of Worms.</p>
 <p>The AphiaIDs corresponding the valid taxon names are already retrieved by <code>wm_records_names</code> and stored in the <em>valid_AphiaID</em> column.</p>
 <p>The LSID for the matched taxon is also retrieved so all we have to do is change the taxon ID in it for the valid one. For that, we get the three first component of the lsid and paste the valid AphiaID with them. Here, they are all from Worms so we could also directly write <em>“<a href="urn:lsid:marinespecies.org:taxname" class="uri">urn:lsid:marinespecies.org:taxname</a>”</em> instead of splitting the original lsid.</p>
-<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>taxres <span class="ot">&lt;-</span> taxres <span class="sc">%&gt;%</span> </span>
-<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">scientificNameID=</span><span class="fu">paste</span>(<span class="fu">str_split_n</span>(lsid,<span class="st">&quot;:[0-9]&quot;</span>,<span class="at">n=</span><span class="dv">1</span>), valid_AphiaID, <span class="at">sep=</span><span class="st">&quot;:&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>taxres <span class="ot">&lt;-</span> taxres <span class="sc">%&gt;%</span> </span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">scientificNameID=</span><span class="fu">paste</span>(<span class="fu">str_split_n</span>(lsid,<span class="st">&quot;:[0-9]&quot;</span>,<span class="at">n=</span><span class="dv">1</span>), valid_AphiaID, <span class="at">sep=</span><span class="st">&quot;:&quot;</span>))</span></code></pre></div>
 </div>
 <div id="build-the-taxonomy-table" class="section level3">
 <h3>Build the taxonomy table</h3>
 <p>We can add all of that into a table.</p>
-<div class="sourceCode" id="cb36"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># join with the table with the original names </span></span>
-<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>tax <span class="ot">&lt;-</span> taxres <span class="sc">%&gt;%</span> </span>
-<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(name,rank,scientificName,<span class="at">scientificNameID=</span>lsid,kingdom) <span class="sc">%&gt;%</span> </span>
-<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">right_join</span>(tax) </span>
-<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a><span class="co"># clean variables </span></span>
-<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(dup,resolved,taxres,temp,unresolved,unresolved_manual,sp_unresolved)</span></code></pre></div>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># join with the table with the original names </span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>tax <span class="ot">&lt;-</span> taxres <span class="sc">%&gt;%</span> </span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(name,rank,scientificName,scientificNameID,kingdom) <span class="sc">%&gt;%</span> </span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">right_join</span>(tax) </span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a><span class="co"># clean variables </span></span>
+<span id="cb42-7"><a href="#cb42-7" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(dup,resolved,taxres,temp,unresolved,unresolved_manual,sp_unresolved)</span></code></pre></div>
 </div>
 </div>
 </div>
@@ -620,9 +646,9 @@ mendations in Neeley et al. (2021) in order to facilitate submission to databas
 <div id="a.-hard-code-the-names" class="section level2">
 <h2>A. Hard code the names</h2>
 <p>These are more complex groups as they need to be coded at the lowest possible taxonomy but generally will need to be coded by hand. I’m showing here a few examples from our own datasets but it will depend on the naming convention of each lab.</p>
-<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>morpho <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span> </span>
-<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(type <span class="sc">==</span> <span class="st">&quot;Morphology&quot;</span>)</span>
-<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>morpho</span></code></pre></div>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>morpho <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span> </span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(type <span class="sc">==</span> <span class="st">&quot;Morphology&quot;</span>)</span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>morpho</span></code></pre></div>
 <pre><code>## # A tibble: 7 x 3
 ##   original_name           type       name                   
 ##   &lt;chr&gt;                   &lt;chr&gt;      &lt;chr&gt;                  
@@ -635,11 +661,11 @@ mendations in Neeley et al. (2021) in order to facilitate submission to databas
 ## 7 Thalassiosira chain     Morphology Thalassiosira chain</code></pre>
 <p>In our database and classifier, we group some of the classes within the algorithm and those classes start with the prefix <em>group</em> (e.g.: <em>group pennate</em>) while the rest of the morphological variables are coded by the class followed by the morphological characteristic (e.g.: <em>Thalassiosira chain</em>).</p>
 <p>An ifelse statement allows me to keep only the second part of a name if it starts with group and only the first part if it doesn’t.</p>
-<div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>morpho <span class="ot">&lt;-</span> morpho <span class="sc">%&gt;%</span> </span>
-<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">scientificname =</span> <span class="fu">ifelse</span>(<span class="fu">str_split_n</span>(name,<span class="st">&quot; &quot;</span>,<span class="at">n=</span><span class="dv">1</span>)<span class="sc">==</span><span class="st">&quot;group&quot;</span>,</span>
-<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>                                 <span class="fu">str_split_n</span>(name,<span class="st">&quot; &quot;</span>,<span class="at">n=</span><span class="dv">2</span>),</span>
-<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>                                 <span class="fu">str_split_n</span>(name,<span class="st">&quot; &quot;</span>,<span class="at">n=</span><span class="dv">1</span>)))</span>
-<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>morpho</span></code></pre></div>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>morpho <span class="ot">&lt;-</span> morpho <span class="sc">%&gt;%</span> </span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">scientificname =</span> <span class="fu">ifelse</span>(<span class="fu">str_split_n</span>(name,<span class="st">&quot; &quot;</span>,<span class="at">n=</span><span class="dv">1</span>)<span class="sc">==</span><span class="st">&quot;group&quot;</span>,</span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>                                 <span class="fu">str_split_n</span>(name,<span class="st">&quot; &quot;</span>,<span class="at">n=</span><span class="dv">2</span>),</span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>                                 <span class="fu">str_split_n</span>(name,<span class="st">&quot; &quot;</span>,<span class="at">n=</span><span class="dv">1</span>)))</span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>morpho</span></code></pre></div>
 <pre><code>## # A tibble: 7 x 4
 ##   original_name           type       name                    scientificname
 ##   &lt;chr&gt;                   &lt;chr&gt;      &lt;chr&gt;                   &lt;chr&gt;         
@@ -651,21 +677,21 @@ mendations in Neeley et al. (2021) in order to facilitate submission to databas
 ## 6 Strombidium morphotype1 Morphology Strombidium morphotype  Strombidium   
 ## 7 Thalassiosira chain     Morphology Thalassiosira chain     Thalassiosira</code></pre>
 <p>The only one right now that is not scientific is <em>pennate</em> so I can manually hard code that one and make sure that all have an uppercase at the beginning.</p>
-<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>morpho <span class="ot">&lt;-</span> morpho <span class="sc">%&gt;%</span> </span>
-<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">scientificname =</span> <span class="fu">replace</span>(scientificname,</span>
-<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>                                  scientificname<span class="sc">==</span><span class="st">&quot;pennate&quot;</span>,</span>
-<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>                                  <span class="st">&quot;Bacillariophyta&quot;</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">scientificname =</span> <span class="fu">str_to_sentence</span>(scientificname))</span>
-<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>morpho</span></code></pre></div>
+<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>morpho <span class="ot">&lt;-</span> morpho <span class="sc">%&gt;%</span> </span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">scientificname =</span> <span class="fu">replace</span>(scientificname,</span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>                                  scientificname<span class="sc">==</span><span class="st">&quot;pennate&quot;</span>,</span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>                                  <span class="st">&quot;Bacillariophycidae&quot;</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">scientificname =</span> <span class="fu">str_to_sentence</span>(scientificname))</span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>morpho</span></code></pre></div>
 <pre><code>## # A tibble: 7 x 4
-##   original_name           type       name                    scientificname 
-##   &lt;chr&gt;                   &lt;chr&gt;      &lt;chr&gt;                   &lt;chr&gt;          
-## 1 Euglenophyceae long     Morphology Euglenophyceae long     Euglenophyceae 
-## 2 group chaetoceros curly Morphology group chaetoceros curly Chaetoceros    
-## 3 group pennate           Morphology group pennate           Bacillariophyta
-## 4 Protozoa pointy         Morphology Protozoa pointy         Protozoa       
-## 5 Protozoa square         Morphology Protozoa square         Protozoa       
-## 6 Strombidium morphotype1 Morphology Strombidium morphotype  Strombidium    
+##   original_name           type       name                    scientificname    
+##   &lt;chr&gt;                   &lt;chr&gt;      &lt;chr&gt;                   &lt;chr&gt;             
+## 1 Euglenophyceae long     Morphology Euglenophyceae long     Euglenophyceae    
+## 2 group chaetoceros curly Morphology group chaetoceros curly Chaetoceros       
+## 3 group pennate           Morphology group pennate           Bacillariophycidae
+## 4 Protozoa pointy         Morphology Protozoa pointy         Protozoa          
+## 5 Protozoa square         Morphology Protozoa square         Protozoa          
+## 6 Strombidium morphotype1 Morphology Strombidium morphotype  Strombidium       
 ## 7 Thalassiosira chain     Morphology Thalassiosira chain     Thalassiosira</code></pre>
 </div>
 <div id="b.-retrieve-the-taxonomy-and-update-lsid" class="section level2">
@@ -673,16 +699,16 @@ mendations in Neeley et al. (2021) in order to facilitate submission to databas
 <div id="worms-taxonomy" class="section level3">
 <h3>Worms taxonomy</h3>
 <p>Same as before, I run these in Worms, check that there are no duplicates and update the name and the LSID. Here we are 2 duplicates because we have 2 Protozoa categories so they are identical and once can be deleted.</p>
-<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># get the worms id corresponding to it </span></span>
-<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>morphres <span class="ot">&lt;-</span> <span class="fu">wm_records_names</span>(morpho<span class="sc">$</span>scientificname, <span class="at">marine_only =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map_dfr</span>(as_tibble, <span class="at">.name_repair =</span> <span class="st">&quot;minimal&quot;</span>)</span>
-<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a><span class="co"># duplicates? </span></span>
-<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>dup <span class="ot">&lt;-</span> morphres <span class="sc">%&gt;%</span> </span>
-<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(scientificname) <span class="sc">%&gt;%</span> </span>
-<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">n</span>()<span class="sc">&gt;</span><span class="dv">1</span>)</span>
-<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a>dup</span></code></pre></div>
+<div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="co"># get the worms id corresponding to it </span></span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>morphres <span class="ot">&lt;-</span> <span class="fu">wm_records_names</span>(morpho<span class="sc">$</span>scientificname, <span class="at">marine_only =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map_dfr</span>(as_tibble, <span class="at">.name_repair =</span> <span class="st">&quot;minimal&quot;</span>)</span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a><span class="co"># duplicates? </span></span>
+<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a>dup <span class="ot">&lt;-</span> morphres <span class="sc">%&gt;%</span> </span>
+<span id="cb49-8"><a href="#cb49-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(scientificname) <span class="sc">%&gt;%</span> </span>
+<span id="cb49-9"><a href="#cb49-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">n</span>()<span class="sc">&gt;</span><span class="dv">1</span>)</span>
+<span id="cb49-10"><a href="#cb49-10" aria-hidden="true" tabindex="-1"></a>dup</span></code></pre></div>
 <pre><code>## # A tibble: 2 x 27
 ## # Groups:   scientificname [1]
 ##   AphiaID url   scientificname authority status unacceptreason taxonRankID rank 
@@ -698,38 +724,38 @@ mendations in Neeley et al. (2021) in order to facilitate submission to databas
 </div>
 <div id="update-name-and-lsid" class="section level3">
 <h3>Update name and LSID</h3>
-<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a><span class="co"># delete extra line and update name and LSID </span></span>
-<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a>morphres <span class="ot">&lt;-</span> morphres <span class="sc">%&gt;%</span> </span>
-<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># delete duplicate</span></span>
-<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>() <span class="sc">%&gt;%</span> </span>
-<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># rename the valid_name columns </span></span>
-<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">scientificName =</span> valid_name) <span class="sc">%&gt;%</span> </span>
-<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># update the LSID </span></span>
-<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">scientificNameID=</span><span class="fu">paste</span>(<span class="fu">str_split_n</span>(lsid,<span class="st">&quot;:[0-9]&quot;</span>,<span class="at">n=</span><span class="dv">1</span>), valid_AphiaID, <span class="at">sep=</span><span class="st">&quot;:&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="co"># delete extra line and update name and LSID </span></span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>morphres <span class="ot">&lt;-</span> morphres <span class="sc">%&gt;%</span> </span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># delete duplicate</span></span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># rename the valid_name columns </span></span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">scientificName =</span> valid_name) <span class="sc">%&gt;%</span> </span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># update the LSID </span></span>
+<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">scientificNameID=</span><span class="fu">paste</span>(<span class="fu">str_split_n</span>(lsid,<span class="st">&quot;:[0-9]&quot;</span>,<span class="at">n=</span><span class="dv">1</span>), valid_AphiaID, <span class="at">sep=</span><span class="st">&quot;:&quot;</span>))</span></code></pre></div>
 </div>
 <div id="combine-table" class="section level3">
 <h3>Combine table</h3>
 <p>First, let’s make sure that there are the same categories in both the resolved and original tables.</p>
-<div class="sourceCode" id="cb46"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span>(<span class="fu">is_empty</span>(<span class="fu">setdiff</span>(morpho<span class="sc">$</span>scientificname,morphres<span class="sc">$</span>scientificname)))) {</span>
-<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">warning</span>(<span class="st">&quot;There are missing categories between the original list and the resolved one.&quot;</span>)</span>
-<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>} </span></code></pre></div>
+<div class="sourceCode" id="cb52"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span>(<span class="fu">is_empty</span>(<span class="fu">setdiff</span>(morpho<span class="sc">$</span>scientificname,morphres<span class="sc">$</span>scientificname)))) {</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">warning</span>(<span class="st">&quot;There are missing categories between the original list and the resolved one.&quot;</span>)</span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>} </span></code></pre></div>
 <p>The only step left is to create a similar table as the one we had for taxonomy:</p>
-<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create table </span></span>
-<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>morpho <span class="ot">&lt;-</span> morphres <span class="sc">%&gt;%</span> </span>
-<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(scientificname,rank,scientificName, <span class="at">scientificNameID=</span>lsid,kingdom) <span class="sc">%&gt;%</span> </span>
-<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">right_join</span>(morpho) <span class="sc">%&gt;%</span> </span>
-<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>scientificname)</span>
-<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a><span class="co"># remove variables </span></span>
-<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(dup,morphres)</span></code></pre></div>
+<div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="co"># create table </span></span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>morpho <span class="ot">&lt;-</span> morphres <span class="sc">%&gt;%</span> </span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(scientificname,rank,scientificName, scientificNameID,kingdom) <span class="sc">%&gt;%</span> </span>
+<span id="cb53-4"><a href="#cb53-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">right_join</span>(morpho) <span class="sc">%&gt;%</span> </span>
+<span id="cb53-5"><a href="#cb53-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>scientificname)</span>
+<span id="cb53-6"><a href="#cb53-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a><span class="co"># remove variables </span></span>
+<span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a><span class="fu">rm</span>(dup,morphres)</span></code></pre></div>
 </div>
 </div>
 </div>
 <div id="non-plankton" class="section level1">
 <h1>4. Non-plankton</h1>
 <p>These can still be living things but they are unrelated to plankton.</p>
-<div class="sourceCode" id="cb48"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>nl <span class="ot">&lt;-</span> <span class="fu">filter</span>(data, type<span class="sc">==</span><span class="st">&quot;Non-plankton&quot;</span>)</span>
-<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>nl</span></code></pre></div>
+<div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>nl <span class="ot">&lt;-</span> <span class="fu">filter</span>(data, type<span class="sc">==</span><span class="st">&quot;Non-plankton&quot;</span>)</span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>nl</span></code></pre></div>
 <pre><code>## # A tibble: 5 x 3
 ##   original_name type         name        
 ##   &lt;chr&gt;         &lt;chr&gt;        &lt;chr&gt;       
@@ -743,15 +769,15 @@ mendations in Neeley et al. (2021) in order to facilitate submission to databas
 <li><p>scientificName = -9999</p></li>
 <li><p>scientificNameID = “ptwg:name” (one of ‘bad_image’, ‘bead’, ‘bubble’, ‘detritus’,&quot;fecal_pellet’, and ‘other’)</p></li>
 </ul>
-<div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>nl <span class="ot">&lt;-</span> nl <span class="sc">%&gt;%</span> </span>
-<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">scientificName =</span> <span class="fu">as.character</span>(<span class="sc">-</span><span class="dv">9999</span>),</span>
-<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>      <span class="at">scientificNameID =</span> <span class="fu">case_when</span>(<span class="fu">str_detect</span>(name,<span class="st">&quot;bubble&quot;</span>) <span class="sc">~</span> <span class="st">&quot;ptwg:bubble&quot;</span>,</span>
-<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>                              <span class="fu">str_detect</span>(name,<span class="st">&quot;detritus&quot;</span>) <span class="sc">~</span> <span class="st">&quot;ptwg:detritus&quot;</span>,</span>
-<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a>                              <span class="fu">str_detect</span>(name,<span class="st">&quot;other|unclassified&quot;</span>) <span class="sc">~</span> <span class="st">&quot;ptwg:other&quot;</span>,</span>
-<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>                              <span class="cn">TRUE</span> <span class="sc">~</span> <span class="cn">NA_character_</span>),</span>
-<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">rank =</span> <span class="cn">NA_character_</span>,</span>
-<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">kingdom=</span><span class="cn">NA_character_</span>) </span>
-<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a>nl</span></code></pre></div>
+<div class="sourceCode" id="cb56"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" aria-hidden="true" tabindex="-1"></a>nl <span class="ot">&lt;-</span> nl <span class="sc">%&gt;%</span> </span>
+<span id="cb56-2"><a href="#cb56-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">scientificName =</span> <span class="fu">as.character</span>(<span class="sc">-</span><span class="dv">9999</span>),</span>
+<span id="cb56-3"><a href="#cb56-3" aria-hidden="true" tabindex="-1"></a>      <span class="at">scientificNameID =</span> <span class="fu">case_when</span>(<span class="fu">str_detect</span>(name,<span class="st">&quot;bubble&quot;</span>) <span class="sc">~</span> <span class="st">&quot;ptwg:bubble&quot;</span>,</span>
+<span id="cb56-4"><a href="#cb56-4" aria-hidden="true" tabindex="-1"></a>                              <span class="fu">str_detect</span>(name,<span class="st">&quot;detritus&quot;</span>) <span class="sc">~</span> <span class="st">&quot;ptwg:detritus&quot;</span>,</span>
+<span id="cb56-5"><a href="#cb56-5" aria-hidden="true" tabindex="-1"></a>                              <span class="fu">str_detect</span>(name,<span class="st">&quot;other|unclassified&quot;</span>) <span class="sc">~</span> <span class="st">&quot;ptwg:other&quot;</span>,</span>
+<span id="cb56-6"><a href="#cb56-6" aria-hidden="true" tabindex="-1"></a>                              <span class="cn">TRUE</span> <span class="sc">~</span> <span class="cn">NA_character_</span>),</span>
+<span id="cb56-7"><a href="#cb56-7" aria-hidden="true" tabindex="-1"></a>      <span class="at">rank =</span> <span class="cn">NA_character_</span>,</span>
+<span id="cb56-8"><a href="#cb56-8" aria-hidden="true" tabindex="-1"></a>      <span class="at">kingdom=</span><span class="cn">NA_character_</span>) </span>
+<span id="cb56-9"><a href="#cb56-9" aria-hidden="true" tabindex="-1"></a>nl</span></code></pre></div>
 <pre><code>## # A tibble: 5 x 7
 ##   original_name type         name  scientificName scientificNameID rank  kingdom
 ##   &lt;chr&gt;         &lt;chr&gt;        &lt;chr&gt; &lt;chr&gt;          &lt;chr&gt;            &lt;chr&gt; &lt;chr&gt;  
@@ -761,10 +787,10 @@ mendations in Neeley et al. (2021) in order to facilitate submission to databas
 ## 4 unclassified  Non-plankton uncl~ -9999          ptwg:other       &lt;NA&gt;  &lt;NA&gt;   
 ## 5 other         Non-plankton other -9999          ptwg:other       &lt;NA&gt;  &lt;NA&gt;</code></pre>
 <p>However, not all of them are defined within this namespace and each lab might have some specific ones. Within the <strong>mouwlab</strong> namespace for instance, I will define one more: ‘pollen’</p>
-<div class="sourceCode" id="cb52"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>nl <span class="ot">&lt;-</span> nl <span class="sc">%&gt;%</span> </span>
-<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">scientificNameID =</span> <span class="fu">case_when</span>(<span class="fu">str_detect</span>(name,<span class="st">&quot;pollen&quot;</span>) <span class="sc">~</span> <span class="st">&quot;mouwlab:pollen&quot;</span>,</span>
-<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>                                      <span class="cn">TRUE</span> <span class="sc">~</span> scientificNameID))</span>
-<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>nl</span></code></pre></div>
+<div class="sourceCode" id="cb58"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a>nl <span class="ot">&lt;-</span> nl <span class="sc">%&gt;%</span> </span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">scientificNameID =</span> <span class="fu">case_when</span>(<span class="fu">str_detect</span>(name,<span class="st">&quot;pollen&quot;</span>) <span class="sc">~</span> <span class="st">&quot;mouwlab:pollen&quot;</span>,</span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>                                      <span class="cn">TRUE</span> <span class="sc">~</span> scientificNameID))</span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>nl</span></code></pre></div>
 <pre><code>## # A tibble: 5 x 7
 ##   original_name type         name  scientificName scientificNameID rank  kingdom
 ##   &lt;chr&gt;         &lt;chr&gt;        &lt;chr&gt; &lt;chr&gt;          &lt;chr&gt;            &lt;chr&gt; &lt;chr&gt;  
@@ -774,20 +800,20 @@ mendations in Neeley et al. (2021) in order to facilitate submission to databas
 ## 4 unclassified  Non-plankton uncl~ -9999          ptwg:other       &lt;NA&gt;  &lt;NA&gt;   
 ## 5 other         Non-plankton other -9999          ptwg:other       &lt;NA&gt;  &lt;NA&gt;</code></pre>
 <p>The last step is just to check that there are no missing <em>scientificNameID</em>:</p>
-<div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(<span class="fu">filter</span>(nl, <span class="fu">is.na</span>(scientificNameID))) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">warning</span>(<span class="st">&quot;Not all scientificNameID have been assigned: you need to define more categories in the namespace&quot;</span>)</span>
-<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>} </span></code></pre></div>
+<div class="sourceCode" id="cb60"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(<span class="fu">filter</span>(nl, <span class="fu">is.na</span>(scientificNameID))) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">warning</span>(<span class="st">&quot;Not all scientificNameID have been assigned: you need to define more categories in the namespace&quot;</span>)</span>
+<span id="cb60-3"><a href="#cb60-3" aria-hidden="true" tabindex="-1"></a>} </span></code></pre></div>
 </div>
 <div id="temporary" class="section level1">
 <h1>5. Temporary</h1>
 <p>These classes have not been associated with any classification. However, they are usually living things so they could be associated to <em>Eukaryota</em>.</p>
 <p>You should check if this is the case for yours.</p>
-<div class="sourceCode" id="cb55"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a>temp <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span> </span>
-<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(type <span class="sc">==</span> <span class="st">&quot;Temporary&quot;</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb55-3"><a href="#cb55-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">scientificName=</span><span class="st">&quot;Eukaryota&quot;</span>,</span>
-<span id="cb55-4"><a href="#cb55-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">scientificNameID=</span><span class="st">&quot;urn:lsid:algaebase.org:taxname:86701&quot;</span>,</span>
-<span id="cb55-5"><a href="#cb55-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">rank=</span><span class="cn">NA_character_</span>)</span>
-<span id="cb55-6"><a href="#cb55-6" aria-hidden="true" tabindex="-1"></a>temp</span></code></pre></div>
+<div class="sourceCode" id="cb61"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a>temp <span class="ot">&lt;-</span> data <span class="sc">%&gt;%</span> </span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(type <span class="sc">==</span> <span class="st">&quot;Temporary&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">scientificName=</span><span class="st">&quot;Eukaryota&quot;</span>,</span>
+<span id="cb61-4"><a href="#cb61-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">scientificNameID=</span><span class="st">&quot;urn:lsid:algaebase.org:taxname:86701&quot;</span>,</span>
+<span id="cb61-5"><a href="#cb61-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">rank=</span><span class="cn">NA_character_</span>)</span>
+<span id="cb61-6"><a href="#cb61-6" aria-hidden="true" tabindex="-1"></a>temp</span></code></pre></div>
 <pre><code>## # A tibble: 1 x 6
 ##   original_name type      name  scientificName scientificNameID            rank 
 ##   &lt;chr&gt;         &lt;chr&gt;     &lt;chr&gt; &lt;chr&gt;          &lt;chr&gt;                       &lt;chr&gt;
@@ -796,14 +822,23 @@ mendations in Neeley et al. (2021) in order to facilitate submission to databas
 <div id="combining-and-exporting" class="section level1">
 <h1>6. Combining and exporting</h1>
 <p>We can combine our different tables and check that we haven’t forgotten any categories…</p>
-<div class="sourceCode" id="cb57"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="co"># combine tables </span></span>
-<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>data_matched <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(tax,morpho,nl,temp)</span>
-<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a><span class="co"># check that there is the same number of rows with the original data and the same categories  </span></span>
-<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(data) <span class="sc">!=</span> <span class="fu">nrow</span>(data_matched) <span class="sc">&amp;</span> </span>
-<span id="cb57-6"><a href="#cb57-6" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span>(<span class="fu">is_empty</span>(<span class="fu">setdiff</span>(data<span class="sc">$</span>name,data_matched<span class="sc">$</span>name)))) {</span>
-<span id="cb57-7"><a href="#cb57-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">warning</span>(<span class="st">&quot;You&#39;ve forgotten a category along the way...&quot;</span>)</span>
-<span id="cb57-8"><a href="#cb57-8" aria-hidden="true" tabindex="-1"></a>} </span></code></pre></div>
+<div class="sourceCode" id="cb63"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="co"># combine tables </span></span>
+<span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>data_matched <span class="ot">&lt;-</span> <span class="fu">bind_rows</span>(tax,morpho,nl,temp)</span>
+<span id="cb63-3"><a href="#cb63-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb63-4"><a href="#cb63-4" aria-hidden="true" tabindex="-1"></a><span class="co"># check that there is the same number of rows with the original data and the same categories  </span></span>
+<span id="cb63-5"><a href="#cb63-5" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">nrow</span>(data) <span class="sc">!=</span> <span class="fu">nrow</span>(data_matched) <span class="sc">|</span>  </span>
+<span id="cb63-6"><a href="#cb63-6" aria-hidden="true" tabindex="-1"></a>    <span class="sc">!</span>(<span class="fu">is_empty</span>(<span class="fu">setdiff</span>(data<span class="sc">$</span>name,data_matched<span class="sc">$</span>name)))) {</span>
+<span id="cb63-7"><a href="#cb63-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">warning</span>(<span class="st">&quot;You&#39;ve forgotten a category along the way...&quot;</span>)</span>
+<span id="cb63-8"><a href="#cb63-8" aria-hidden="true" tabindex="-1"></a>} </span></code></pre></div>
+<pre><code>## Warning: You&#39;ve forgotten a category along the way...</code></pre>
+<p>What can happen is that the <code>gnr_resolve</code> function has a little bit of fuzzy matching and might match the name to several <em>matched_names2</em>. That’s the case here for <em>Baccillaria paxillifer</em> which got matched to both <em>paxillifer</em> and <em>paxillifera</em>. You can detect it by looking if any rows are fully duplicated:</p>
+<div class="sourceCode" id="cb65"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="fu">filter</span>(data_matched, <span class="fu">duplicated</span>(data_matched))</span></code></pre></div>
+<pre><code>## # A tibble: 1 x 7
+##   name    rank   scientificName  scientificNameID   kingdom original_name  type 
+##   &lt;chr&gt;   &lt;chr&gt;  &lt;chr&gt;           &lt;chr&gt;              &lt;chr&gt;   &lt;chr&gt;          &lt;chr&gt;
+## 1 Baccil~ Speci~ Vibrio paxilli~ urn:lsid:marinesp~ Chromi~ Baccillaria p~ Taxo~</code></pre>
+<p>That’s the case here for one species so we can use the <code>distinct</code> function to remove it:</p>
+<div class="sourceCode" id="cb67"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>data_matched <span class="ot">&lt;-</span> <span class="fu">distinct</span>(data_matched)</span></code></pre></div>
 <p>Review! It’s very important to scan your table to make sure there are no mistakes. Look for:</p>
 <ul>
 <li><p>simplifications from species to genus =&gt; are they justified? is it because the species only have metabarcoding?</p></li>
@@ -811,8 +846,8 @@ mendations in Neeley et al. (2021) in order to facilitate submission to databas
 <li><p>NAs?</p></li>
 </ul>
 <p>Lastly, we can export our matched table.</p>
-<div class="sourceCode" id="cb58"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="co"># export as csv </span></span>
-<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(data_matched,<span class="st">&quot;../data/matched_example_taxo.csv&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb68"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a><span class="co"># export as csv </span></span>
+<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(data_matched,<span class="st">&quot;../data/matched_example_taxo.csv&quot;</span>)</span></code></pre></div>
 </div>
 </div>
 

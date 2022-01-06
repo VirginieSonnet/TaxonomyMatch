@@ -268,6 +268,8 @@ sp_unresolved <- setdiff(tax$name,resolved$name)
 sp_unresolved
 ```
 
+### Retrieve taxonomy from Worms 
+
 Now if there are several, you can run functions with fuzzy matching and non-marine species. `wm_records_taxamatch` uses the TAXAMATCH fuzzy matching algorithm and will apply small corrections to the name while `wm_records_names` with fuxxy matching will also return all of the children.
 
 However, since the scientificname will be different from the input name (due to the fuzzy matching) you will have to add an extra column and manually enter the original names if you want to keep track of the original and taxonomically accepted name. Once done, you can evaluate which ones you keep in a similar way as for the resolved species.
@@ -280,7 +282,7 @@ Let's start with `wm_records_taxamatch`.
   map_dfr(as_tibble, .name_repair = "minimal")
 ```
 
-Now we can look at which ones were not exact match and update their name. Again, we might have some quarantined returning NAs so these will be removed.
+Now we can look at which ones were not exact match and update their name. We are thus keeping the exact matches and the updated names ones. Again, we might have some quarantined returning NAs so these will be removed.
 
 ```{r}
 # non-exact match type 
@@ -288,14 +290,15 @@ filter(unresolved, match_type!="exact")
 
 # add the original name 
 unresolved <- unresolved %>% 
-  # copy all of them 
-  mutate(name = scientificname) %>% 
   # update the wrong ones (can also use str_detect)
-  mutate(name = case_when(name=="Chaetoceros muelleri"~"Chaetoceros muellerii",
-                          TRUE ~ name)) %>% 
+  mutate(name = case_when(match_type=="exact"~scientificname,
+                          name=="Chaetoceros muelleri"~"Chaetoceros muellerii",
+                          TRUE ~ NA_character_)) %>% 
   # remove the ones that returned NA (quarantined)
   filter(!is.na(name))
 ```
+
+### Duplicates 
 
 Next thing is to check for duplicates (see section B) check if there are duplicates, run a few filters as seen for the resolved names and check again for duplicates before adding to the resolved table.
 
@@ -313,14 +316,15 @@ if (nrow(unresolved) < length(sp_unresolved)) {
   warning("There are still categories unresolved.")
 } 
 ```
+### Hard code the others
 
-These are harder to determine. They may be due to more general categories or common names. You can try to run the function `get_wormsid` indicating `searchtype="common"` but you will likely have to hard code them.
+These are harder to determine. They may be due to more general categories or common names. You can try to run the function `get_wormsid` indicating `searchtype="common"` or `wm_records_names` with `fuzzy=TRUE` but you will likely have to hard code them and it's also faster if you have only a few of them.
 
 ```{r}
 sp_unresolved[!(sp_unresolved %in% unresolved$name)]
 ```
 
-I can check first if they appear in any database:
+I can check first if they appear in any database, that can give an indication of what the name could be. 
 
 ```{r}
 gnr_resolve(sp_unresolved[!(sp_unresolved %in% unresolved$name)])
@@ -392,7 +396,7 @@ We can add all of that into a table.
 ```{r}
 # join with the table with the original names 
 tax <- taxres %>% 
-  select(name,rank,scientificName,scientificNameID=lsid,kingdom) %>% 
+  select(name,rank,scientificName,scientificNameID,kingdom) %>% 
   right_join(tax) 
 
 # clean variables 
@@ -429,7 +433,7 @@ The only one right now that is not scientific is *pennate* so I can manually har
 morpho <- morpho %>% 
   mutate(scientificname = replace(scientificname,
                                   scientificname=="pennate",
-                                  "Bacillariophyta")) %>% 
+                                  "Bacillariophycidae")) %>% 
   mutate(scientificname = str_to_sentence(scientificname))
 morpho
 ```
@@ -481,7 +485,7 @@ The only step left is to create a similar table as the one we had for taxonomy:
 ```{r}
 # create table 
 morpho <- morphres %>% 
-  select(scientificname,rank,scientificName, scientificNameID=lsid,kingdom) %>% 
+  select(scientificname,rank,scientificName, scientificNameID,kingdom) %>% 
   right_join(morpho) %>% 
   select(-scientificname)
 
@@ -557,11 +561,23 @@ We can combine our different tables and check that we haven't forgotten any cate
 data_matched <- bind_rows(tax,morpho,nl,temp)
 
 # check that there is the same number of rows with the original data and the same categories  
-if (nrow(data) != nrow(data_matched) & 
+if (nrow(data) != nrow(data_matched) |  
     !(is_empty(setdiff(data$name,data_matched$name)))) {
   warning("You've forgotten a category along the way...")
 } 
 ```
+What can happen is that the `gnr_resolve` function has a little bit of fuzzy matching and might match the name to several *matched_names2*. That's the case here for *Baccillaria paxillifer* which got matched to both *paxillifer* and *paxillifera*. You can detect it by looking if any rows are fully duplicated: 
+
+```{r}
+filter(data_matched, duplicated(data_matched))
+```
+
+That's the case here for one species so we can use the `distinct` function to remove it: 
+
+```{r}
+data_matched <- distinct(data_matched)
+```
+
 
 Review! It's very important to scan your table to make sure there are no mistakes. Look for:
 
