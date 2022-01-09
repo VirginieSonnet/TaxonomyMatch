@@ -1,25 +1,28 @@
 name,rank,scientificName,scientificNameID,kingdom,original_name,type
 Actinocyclus,Genus,Actinocyclus,urn:lsid:marinespecies.org:taxname:148944,Chromista,Actinocyclus,Taxonomy
+zooplankton,Kingdom,Animalia,urn:lsid:marinespecies.org:taxname:2,Animalia,zooplankton,Taxonomy
 Asterionellopsis glacialis,Species,Asterionella glacialis,urn:lsid:marinespecies.org:taxname:148955,Chromista,Asterionellopsis glacialis,Taxonomy
 Bacillaria,Genus,Bacillaria,urn:lsid:marinespecies.org:taxname:149148,Chromista,Bacillaria,Taxonomy
-Baccillaria paxillifer,Species,Vibrio paxillifer,urn:lsid:marinespecies.org:taxname:163728,Chromista,Baccillaria paxillifer,Taxonomy
 Cerataulina bergonii,Species,Cerataulina bergonii,urn:lsid:marinespecies.org:taxname:961694,Chromista,Cerataulina bergonii,Taxonomy
 Chaetoceros jonquieri,Genus,Chaetoceros,urn:lsid:marinespecies.org:taxname:148985,Chromista,Chaetoceros jonquieri,Taxonomy
 Chaetoceros,Genus,Chaetoceros,urn:lsid:marinespecies.org:taxname:148985,Chromista,Chaetoceros_sp12,Taxonomy
+Chaetoceros elegans,Species,Chaetoceros elegans,urn:lsid:marinespecies.org:taxname:963740,Chromista,Chaetoceros elegans,Taxonomy
+Chaetoceros muellerii,Species,Chaetoceros muelleri,urn:lsid:marinespecies.org:taxname:163098,Chromista,Chaetoceros muellerii,Taxonomy
 Ciliophora,Phylum,Ciliophora,urn:lsid:marinespecies.org:taxname:11,Chromista,Ciliophora,Taxonomy
-Dactyliosolen blavyanus,Species,Guinardia blavyana var. blavyana,urn:lsid:marinespecies.org:taxname:975336,Chromista,Dactyliosolen blavyanus,Taxonomy
+Coccolithus pelagicus,Species,Coccolithus pelagicus,urn:lsid:marinespecies.org:taxname:178600,Chromista,Coccolithus pelagicus,Taxonomy
+Dinobryon facula,Species,Dinobryon facula,urn:lsid:algaebase.org:taxname:143479,Chromista,Dinobryon facula,Taxonomy
+Fragilaria vaucheriae,Species,Exilaria vaucheriae,urn:lsid:marinespecies.org:taxname:172406,Chromista,Fragilaria vaucheriae,Taxonomy
 Grammatophora,Genus,Grammatophora,urn:lsid:marinespecies.org:taxname:149335,Chromista,Grammatophora,Taxonomy
-Guinardia delicatula,Species,Rhizosolenia delicatula,urn:lsid:marinespecies.org:taxname:149114,Chromista,Guinardia delicatula,Taxonomy
+Dactyliosolen blavyanus,Species,Guinardia blavyana var. blavyana,urn:lsid:marinespecies.org:taxname:975336,Chromista,Dactyliosolen blavyanus,Taxonomy
+Kephyriopsis,Genus,Kephyriopsis,urn:lsid:marinespecies.org:taxname:604834,Chromista,Kephyriopsis,Taxonomy
+Leptocylindrus aporus,Species,Leptocylindrus danicus,urn:lsid:marinespecies.org:taxname:149106,Chromista,Leptocylindrus aporus,Taxonomy
+Licmophora paradoxa,Species,Licmophora paradoxa,urn:lsid:marinespecies.org:taxname:149344,Chromista,Licmophora paradoxa,Taxonomy
 Nitzschia,Genus,Nitzschia,urn:lsid:marinespecies.org:taxname:149045,Chromista,Nitzschia,Taxonomy
+Guinardia delicatula,Species,Rhizosolenia delicatula,urn:lsid:marinespecies.org:taxname:149114,Chromista,Guinardia delicatula,Taxonomy
+Staurosirella,Genus,Staurosirella,urn:lsid:marinespecies.org:taxname:175949,Chromista,Staurosirella sp.,Taxonomy
 Thalassionema nitzschioides,Species,Synedra nitzschioides f. nitzschioides,urn:lsid:marinespecies.org:taxname:985570,Chromista,Thalassionema nitzschioides,Taxonomy
 Tripos,Genus,Tripos,urn:lsid:marinespecies.org:taxname:494057,Chromista,Tripos sp.,Taxonomy
-Leptocylindrus aporus,Species,Leptocylindrus danicus,urn:lsid:marinespecies.org:taxname:149106,Chromista,Leptocylindrus aporus,Taxonomy
-zooplankton,Kingdom,Animalia,urn:lsid:marinespecies.org:taxname:2,Animalia,zooplankton,Taxonomy
-Chaetoceros elegans,NA,NA,NA,NA,Chaetoceros elegans,Taxonomy
-Chaetoceros muellerii,NA,NA,NA,NA,Chaetoceros muellerii,Taxonomy
-Fragilaria vaucheriae,NA,NA,NA,NA,Fragilaria vaucheriae,Taxonomy
-Licmophora paradoxa,NA,NA,NA,NA,Licmophora paradoxa,Taxonomy
-Staurosirella,NA,NA,NA,NA,Staurosirella sp.,Taxonomy
+Baccillaria paxillifer,Species,Vibrio paxillifer,urn:lsid:marinespecies.org:taxname:163728,Chromista,Baccillaria paxillifer,Taxonomy
 Euglenophyceae long,Class,Euglenophyceae,urn:lsid:marinespecies.org:taxname:19539,Protozoa,Euglenophyceae long,Morphology
 group chaetoceros curly,Genus,Chaetoceros,urn:lsid:marinespecies.org:taxname:148985,Chromista,group chaetoceros curly,Morphology
 group pennate,Subclass,Bacillariophycidae,urn:lsid:marinespecies.org:taxname:148902,Chromista,group pennate,Morphology

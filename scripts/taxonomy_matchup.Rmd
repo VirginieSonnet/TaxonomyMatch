@@ -19,13 +19,13 @@ output:
     # code_folding: "hide"
 ---
 
+```{=html}
 <style>
 body {
 font-family: "LM Roman";
 text-align: justify}
 </style>
-
-
+```
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(eval=TRUE, # run the code chunks FALSE/TRUE
                       echo=TRUE, # print the source code FALSE/TRUE
@@ -49,14 +49,14 @@ library(tidyverse) # data manipulation
 library(worrms)
 library(taxize)
 library(taxonomyCleanr)
+library(algaeClassify)
 ```
 
 # Introduction
 
 This code outlines **how to clean a list of categories (here mostly phytoplankton) in order to retrieve a valid accepted name for each.**
 
-It is inspired by the recom\
-mendations in Neeley et al. (2021) in order to facilitate submission to databases such as SeaBASS or EDI. For the later, a set of functions in base R were developed by Katherine Qi within the EDI-NES-LTER-2019 project ([\<https://github.com/klqi/EDI-NES-LTER-2019/tree/master/namespace_validation\>](https://github.com/klqi/EDI-NES-LTER-2019/tree/master/namespace_validation){.uri}).
+It is inspired by the recommendations in Neeley et al. (2021) in order to facilitate submission to databases such as SeaBASS or EDI. For the later, a set of functions in base R were developed by Katherine Qi within the EDI-NES-LTER-2019 project ([\<https://github.com/klqi/EDI-NES-LTER-2019/tree/master/namespace_validation\>](https://github.com/klqi/EDI-NES-LTER-2019/tree/master/namespace_validation){.uri}).
 
 The steps presented here use a **tidyverse** structure and are, on purpose, **not turned into functions**. Taxonomy match-up is tricky and I consider that it is better to know exactly which filters are applied on the names and how the data look like at almost every step.
 
@@ -68,7 +68,7 @@ The last 3 parts - Morphology, Non-Plankton and Temporary - are thus specificall
 
 ## A. Initial data
 
-I will be working with an example file containing 24 categories and I will call the initial input category *original_name*.
+I will be working with an example file containing 37 categories and I will call the initial input category *original_name*. I'm using `read_csv` but if you have latin names, you should export with the base R `read.csv` to properly handle the accents.
 
 ```{r}
 data <- read_csv("../data/example_taxo.csv") %>% 
@@ -148,14 +148,25 @@ The list of unresolved species might get longer later if some of the resolved sp
 
 Now I want to determine if those resolved names (i.e.: the matched names I got from above) I get are found in the Worms database and if they are accepted version or not.
 
-<u> Note </u>: It can happen that the vector of names is too long, in that case, you can just split it in 2 or 3 and resolve each vector.
+<u> Note </u>: It can happen that the vector of names is too long, in that case, you can just split it in 2 or 3 and resolve each vector. It seems to work best with at most 100 names for `wm_records_names` and 50 names for `wm_records_taxamatch` (see later).
 
-I use the function `wm_records_names` which returns a list, a format unpractical in that case so I use the `map` function from the package `purr` to change it to a tibble. The function allows to precise if we want only marine organisms and to use fuzzy matching or not. I would recommend first to not use fuzzy matching and keep only marine and expand in the unresolved section if no results are found.
+I use the function `wm_records_names` which returns a list, a format unpractical in that case so I use the `map` function from the package `purr` to change it to a tibble. The function allows to precise if we want only marine organisms and to use fuzzy matching or not.
 
 ```{r}
-resolved <- wm_records_names(name=unique(temp$matched_name2)) %>% 
+resolved <- wm_records_names(name=unique(temp$matched_name2),marine_only=FALSE) %>% 
   map_dfr(as_tibble, .name_repair = "minimal") %>% 
   arrange(scientificname)
+
+
+### Split version 
+# n <- length(unique(temp$matched_name2))
+# resolved <- tibble()
+# 
+# # split the dataset 
+# for (i in 1:ceiling(n/100)){
+#   resworms <- wm_records_names(name=unique(temp$matched_name2)[(100*(i-1)+1):(100*i)], marine_only=FALSE) %>% 
+#     map_dfr(as_tibble, .name_repair = "minimal") 
+#   resolved <- bind_rows(resolved,resworms)
 ```
 
 The results can have one of 4 status:
@@ -175,51 +186,74 @@ It's always good to check for duplicates.
 ```{r}
 dup <- resolved %>% 
   group_by(scientificname) %>% 
-  filter(n()>1)
+  filter(n()>1) %>% 
+  arrange(scientificname)
 dup
 ```
 
 Some can be duplicated:
 
--   if they have been described twice (e.g.: *Cerataulina bergonii*): then choose the *accepted* or *uncertain* status over the *alternate representation* or *unaccepted* status
-
--   if there is one in the Animalia and one in the Chromista kingdom (e.g.: *Actinocyclus*, *Nitzschia*): choose the Chromista as far as it is not supposed to be a zooplankton
-
 -   who knows why, some records are sometimes fully duplicated: just keep one since they are exactly similar
 
--   if there is one *accepted* and one *uncertain* (should not happen normally): keep the *accepted* if they have the same lineage
+-   remove the ones that do not have a *valid_name*: actually, remove any *valid_name* that's NA in the dataset that wouldn't have the status "accepted" or "uncertain" (e.g.: *Kephyriopsis*), they can be dealt with in the unresolved if they were not duplicates (generally disused groups)
+
+-   if there is one in the Animalia or Plantae and one in the Chromista kingdom (e.g.: *Actinocyclus*, *Nitzschia*): choose the Chromista as far as it is not supposed to be a zooplankton
+
+-   if they have been described twice (e.g.: *Cerataulina bergonii*): then choose the *accepted* or *uncertain* status over the *alternate representation* or *unaccepted* status
+
+-   if there is one *accepted* and one *uncertain*: keep the *accepted*
 
 -   if there is one marine and one freshwater species (assuming you ran the search with `marine_only=FALSE`): keep the marine one if they have the same lineage (unless you are studying a freshwater station!)
 
+-   if they are identical except for the authority choose the oldest/most recent one (just keep consistent)
+
 ```{r}
-# choose accepted or uncertain status if more than 2 occurrences 
-resolved <- resolved %>% 
-  group_by(scientificname) %>% 
-  filter(n()==1 | (n() > 1 & status %in% c("accepted","uncertain")))
-
-
-# choose the Chromista over Animalia if more than 2 occurrences 
-filter(dup, kingdom=="Animalia")
-resolved <- resolved %>% 
-  group_by(scientificname) %>% 
-  filter(n()==1 | (n() > 1 & kingdom != "Animalia"))
-
-
 # remove duplicated rows 
 resolved <- resolved %>% 
   distinct()
 
 
-# if there is uncertain and accepted, keep only accepted if mroe than 2 occurrences
+# NAs valid_name
+filter(resolved, is.na(valid_name))
+resolved <- resolved %>% 
+  filter(!(is.na(valid_name) & !(status %in% c("accepted","uncertain"))))
+
+
+# choose the Chromista over Animalia (or another kingdom like Plantae) if more than 2 occurrences 
+filter(dup, kingdom!="Chromista")
 resolved <- resolved %>% 
   group_by(scientificname) %>% 
-  filter(n()==1 | (n() > 1 & length(unique(status)) == 1) | (n() > 1 & length(unique(status)) == 2 & status == "accepted"))
+  filter(n()==1 | (n() > 1 & kingdom != "Animalia"))
+
+
+# choose accepted or uncertain status if more than 2 occurrences and one is accepted/uncertain
+# (\\b prevents unaccepted to be detected)
+resolved <- resolved %>% 
+  group_by(scientificname) %>% 
+  filter(n()==1 | 
+           (n() > 1 & sum(str_detect(status,"\\baccepted|uncertain"))==0) |  
+           (n() > 1 & sum(str_detect(status,"\\baccepted|uncertain")) > 0) & status %in% c("accepted","uncertain"))
+
+
+# if there are more than 2 occurrences and one of them is accepted, keep that one 
+resolved <- resolved %>% 
+  group_by(scientificname) %>% 
+  filter(n()==1 |
+           (n() > 1 & sum(str_detect(status,"\\baccepted"))==0) | 
+           (n() > 1 & sum(str_detect(status,"\\baccepted"))>0 &  status == "accepted"))
 
 
 # if a marine taxon exist, keep the marine taxon (assuming you did your search on both marine and freshwater) if more than 2 occurrences 
 resolved <- resolved %>% 
   group_by(scientificname) %>% 
   filter(n()==1 | (n() > 1 & sum(isMarine, na.rm=TRUE) == 0) | (n() > 1 & sum(isMarine, na.rm=TRUE) != 0 & isMarine==1))
+
+
+# keep the oldest record
+resolved <- resolved %>%
+  mutate(year=str_split_n(valid_authority,",",2)) %>%
+  group_by(scientificname) %>%
+  filter(n()==1 | (n() > 1 & year==min(year,na.rm=TRUE)))
 ```
 
 If a few are left it is probably better to resolve them by hand. You can for instance look at the reference for this taxon in algaeBase. If they both have the same taxonomic lineage, then it is not too much of a difference.
@@ -240,6 +274,19 @@ Keep in mind that `wm_records_names` may fail to find a match for a few species 
 ```{r}
 # remove the ones that are in quarantine = no name was returned 
 resolved <- filter(resolved, !is.na(scientificname))
+```
+
+Also, remember how we removed the ones with no *valid_name* and a status that wasn't uncertain or accepted? For the others (i.e.: with status accepted/uncertain, e.g.: *Coccolithus pelagicus*), we can just update these with the original scientificname and ID since they were found in Worms and there is no other alternative.
+
+```{r}
+# look if there are any
+filter(resolved,is.na(valid_name))
+
+# update the valid name and id 
+resolved <- resolved %>% 
+  # update the valid name and ID 
+  mutate(valid_name=ifelse(is.na(valid_name),scientificname,valid_name),
+         valid_AphiaID=ifelse(is.na(valid_AphiaID),AphiaID,valid_AphiaID))
 ```
 
 ### Update the species name
@@ -264,11 +311,11 @@ if (nrow(filter(resolved,is.na(name))) > 0) {
 Let's first update the unresolved categories list.
 
 ```{r}
-sp_unresolved <- setdiff(tax$name,resolved$name)
+sp_unresolved <- sort(setdiff(tax$name,resolved$name))
 sp_unresolved
 ```
 
-### Retrieve taxonomy from Worms 
+### Retrieve taxonomy from Worms
 
 Now if there are several, you can run functions with fuzzy matching and non-marine species. `wm_records_taxamatch` uses the TAXAMATCH fuzzy matching algorithm and will apply small corrections to the name while `wm_records_names` with fuxxy matching will also return all of the children.
 
@@ -292,30 +339,54 @@ filter(unresolved, match_type!="exact")
 unresolved <- unresolved %>% 
   # update the wrong ones (can also use str_detect)
   mutate(name = case_when(match_type=="exact"~scientificname,
-                          name=="Chaetoceros muelleri"~"Chaetoceros muellerii",
+                          scientificname=="Chaetoceros muelleri"~"Chaetoceros muellerii",
                           TRUE ~ NA_character_)) %>% 
   # remove the ones that returned NA (quarantined)
   filter(!is.na(name))
 ```
 
-### Duplicates 
+### Duplicates
 
 Next thing is to check for duplicates (see section B) check if there are duplicates, run a few filters as seen for the resolved names and check again for duplicates before adding to the resolved table.
 
 ```{r}
 dup <- unresolved %>% 
   group_by(scientificname) %>% 
-  filter(n()>1)
+  filter(n()>1) %>% 
+  arrange(scientificname)
 dup
 ```
 
-In this case, there are no duplicates but some categories are still not resolved.
+Here we have none!
+
+### Others
+
+In this case, there are no duplicates but we want to check that we have valid names (same as for the resolved ones) and, in the case they are NA, update their name if their status is accepted.
+
+```{r}
+# remove NA valid_name when status is not accepted/uncertain 
+filter(unresolved, is.na(valid_name))
+unresolved <- unresolved %>% 
+  filter(!(is.na(valid_name) & !(status %in% c("accepted","uncertain"))))
+
+# NAs valid name with status accepted/uncertain?
+filter(unresolved, is.na(valid_name))
+
+# update the valid name and id 
+unresolved <- unresolved %>% 
+  # update the valid name and ID 
+  mutate(valid_name=ifelse(is.na(valid_name),scientificname,valid_name),
+         valid_AphiaID=ifelse(is.na(valid_AphiaID),AphiaID,valid_AphiaID))
+```
+
+The last step checks if there are some left:
 
 ```{r}
 if (nrow(unresolved) < length(sp_unresolved)) {
   warning("There are still categories unresolved.")
 } 
 ```
+
 ### Hard code the others
 
 These are harder to determine. They may be due to more general categories or common names. You can try to run the function `get_wormsid` indicating `searchtype="common"` or `wm_records_names` with `fuzzy=TRUE` but you will likely have to hard code them and it's also faster if you have only a few of them.
@@ -324,21 +395,25 @@ These are harder to determine. They may be due to more general categories or com
 sp_unresolved[!(sp_unresolved %in% unresolved$name)]
 ```
 
-I can check first if they appear in any database, that can give an indication of what the name could be. 
+I can check first if they appear in any database, that can give an indication of what the name could be.
 
 ```{r}
 gnr_resolve(sp_unresolved[!(sp_unresolved %in% unresolved$name)])
 ```
 
-In this case, I still have 2 unresolved ones:
+In this case, I still have 4 unresolved ones:
 
 -   *zooplankton* which I will match to *Animalia*
 
--   *Leptocylindrus aporus*: in algaeBase it corresponds to *Leptocylindrus danicus var. aporus* which is in quarantine in Worms so I'll just code it as *Leptocylindrus danicus*
+-   *Leptocylindrus aporus*: in algaeBase it corresponds to *Leptocylindrus danicus var. aporus* which is in quarantine in Worms so I'll just code it as *Leptocylindrus danicus*. Another solution, especially if you have several missing ones in Worms but present in AlgaeBase (most likely freshwater algae) is to hard code them with the id from AlgaeBase (see the optional next point)
+
+-   *Dinobryon facula*: it is in algaeBase but not in Worms so to retain the taxonomy I'll code it at the end of this section 2 with the algaeBase ID
+
+-   *Kephyriopsis*: it is unaccepted but there are no accepted genus corresponding to it and some accepted species still have that genus so I will keep it and update its *valid_name* and *valid_AphiaID* since they were missing
 
 ```{r}
 # get the taxonomy for the updated names 
-unresolved_manual <- wm_records_names(c("Leptocylindrus danicus","Animalia"), marine_only = TRUE) %>% 
+unresolved_manual <- wm_records_names(c("Leptocylindrus danicus","Animalia","Kephyriopsis"), marine_only = FALSE) %>% 
   map_dfr(as_tibble, .name_repair = "minimal")
 
 
@@ -347,14 +422,40 @@ unresolved_manual <- unresolved_manual %>%
   # add a column with the name 
   mutate(name = case_when(str_detect(scientificname,"danicus")~"Leptocylindrus aporus",
                           scientificname=="Animalia"~"zooplankton",
-                          TRUE ~ NA_character_)) 
+                          TRUE ~ scientificname)) 
+```
+
+Same as before, we need to check for duplicates and handle them and the NA *valid_name*. Here there is one, *Leptocylindrus danicus* for which the only difference is the authority so I will keep the oldest record.
+
+```{r}
+# duplicates? 
+dup <- unresolved_manual %>% 
+  group_by(scientificname) %>% 
+  filter(n()>1) %>% 
+  arrange(scientificname)
+dup
+
+
+# keep the oldest record 
+unresolved_manual <- unresolved_manual %>%
+  mutate(year=str_split_n(valid_authority,",",2)) %>%
+  group_by(scientificname) %>%
+  filter(n()==1 | (n() > 1 & year==min(year,na.rm=TRUE)))
+
+
+# update NA for Kephyriopsis (could change based on your decision)
+filter(unresolved_manual,is.na(valid_name))
+unresolved_manual <- unresolved_manual %>% 
+  # update the valid name and ID 
+  mutate(valid_name=ifelse(is.na(valid_name),scientificname,valid_name),
+         valid_AphiaID=ifelse(is.na(valid_AphiaID),AphiaID,valid_AphiaID))
 ```
 
 ## D. Combine and extract LSID
 
 ### Combine the tables
 
-We can combine all of our tables and check that we have the same number of taxon that in the original tax table.
+I can combine all of the tables and check that there is the same number of taxon that in the original tax table.
 
 ```{r}
 taxres <- bind_rows(resolved,unresolved,unresolved_manual)
@@ -362,6 +463,12 @@ taxres <- bind_rows(resolved,unresolved,unresolved_manual)
 if (!(is_empty(setdiff(tax$name,taxres$name)))) {
   warning("There are missing categories between the original list and the resolved one.")
 } 
+```
+
+Here I have one missing species, the one that's in algaeBase but not Worms. Because I'll need to create the look up the details, I'll update it at the end.
+
+```{r}
+setdiff(tax$name,taxres$name)
 ```
 
 ### Update species and LSID for the accepted ones
@@ -401,6 +508,41 @@ tax <- taxres %>%
 
 # clean variables 
 rm(dup,resolved,taxres,temp,unresolved,unresolved_manual,sp_unresolved)
+```
+
+### (optional) Add the missing species from algaeBase
+
+It can happen that very specific species or varieties are not recorded in Worms but are in algaeBase. There is no equivalent (that I know of) of `wm_records_names` for algaeBase except for `algae_search` from the *algaeClassify* package but it only returns NAs for the species I've tried so it is mostly useful in checking if the species exist or not in algaeBase.
+
+This is obviously a non-necessary step if you have resolved all of your species before. In general I have species level categories in the Chromista kingdom so I find it easier to assign that to all and update the few that might be wrong.
+
+```{r}
+# prepare the tibble
+algae <- tibble(name=c("Dinobryon facula"),
+           rank="Species",
+           scientificName=name,
+           kingdom="Chromista",
+           original_name=name,
+           type="Taxonomy")
+    ## update the rank/kingdom for the specific ones 
+    # mutate(rank=ifelse(str_detect(name,"var."),"Variety",rank))
+
+
+# add the scientificnameID
+algae$scientificNameID <- paste0("urn:lsid:algaebase.org:taxname:",
+                                c(143479))
+
+
+# check that they are correct
+algaebase <- spp_list_algaebase(algae,"name")
+if (sum(algaebase$name!=algae$name)>0) {
+  warning("There seems to be a mistake in the algaeBase IDs.")
+}
+
+
+# remove them from the tax list and add the updated ones
+tax <- filter(tax, !(original_name %in% algae$original_name))
+tax <- bind_rows(tax, algae) %>% arrange(scientificName)
 ```
 
 # 3. Morphology
@@ -453,7 +595,8 @@ morphres <- wm_records_names(morpho$scientificname, marine_only = FALSE) %>%
 # duplicates? 
 dup <- morphres %>% 
   group_by(scientificname) %>% 
-  filter(n()>1)
+  filter(n()>1) %>% 
+  arrange(scientificname)
 dup
 ```
 
@@ -563,21 +706,21 @@ data_matched <- bind_rows(tax,morpho,nl,temp)
 # check that there is the same number of rows with the original data and the same categories  
 if (nrow(data) != nrow(data_matched) |  
     !(is_empty(setdiff(data$name,data_matched$name)))) {
-  warning("You've forgotten a category along the way...")
+  warning("You've forgotten or added a category along the way...")
 } 
 ```
-What can happen is that the `gnr_resolve` function has a little bit of fuzzy matching and might match the name to several *matched_names2*. That's the case here for *Baccillaria paxillifer* which got matched to both *paxillifer* and *paxillifera*. You can detect it by looking if any rows are fully duplicated: 
+
+What can happen is that the `gnr_resolve` function has a little bit of fuzzy matching and might match the name to several *matched_names2*. That's the case here for *Baccillaria paxillifer* which got matched to both *paxillifer* and *paxillifera*. You can detect it by looking if any rows are fully duplicated:
 
 ```{r}
 filter(data_matched, duplicated(data_matched))
 ```
 
-That's the case here for one species so we can use the `distinct` function to remove it: 
+That's the case here for one species so we can use the `distinct` function to remove it:
 
 ```{r}
 data_matched <- distinct(data_matched)
 ```
-
 
 Review! It's very important to scan your table to make sure there are no mistakes. Look for:
 
@@ -587,7 +730,7 @@ Review! It's very important to scan your table to make sure there are no mistake
 
 -   NAs?
 
-Lastly, we can export our matched table.
+Lastly, we can export our matched table. I'm using `write_csv` but if you have latin names, you should export with the base R `write.csv` to properly handle the accents.
 
 ```{r}
 # export as csv 
